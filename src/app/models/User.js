@@ -8,8 +8,10 @@ const userSchema = new mongoose.Schema(
       fullName: { type: String, minLength: 6, required: true },
       region: { type: String },
       address: { type: String, minLength: 6, maxLength: 35 },
+      dob: { type: String, minLength: 8 },
       gender: { type: String, enum: ["male", "female", "others"], required: true },
       email: { type: String, minLength: 12, maxLength: 35 },
+      avatar: { type: String, default: "" },
    },
    {
       timestamps: true,
