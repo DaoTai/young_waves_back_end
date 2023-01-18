@@ -11,11 +11,11 @@ const postSchema = new mongoose.Schema(
       },
       body: {
          type: String,
-         maxLength: 1000,
+         maxLength: 10000,
          required: true,
       },
       likes: [{ type: mongoose.Types.ObjectId, ref: "user" }],
-      comments: [{ type: mongoose.Types.ObjectId, ref: "user" }],
+      comments: [{ type: mongoose.Types.ObjectId, ref: "comment" }],
       attachment: [{ type: String }],
    },
    {

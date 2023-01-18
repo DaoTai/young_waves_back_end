@@ -46,7 +46,7 @@ const AdminController = {
    // [DELETE] admin/users/:id
    async deleteUser(req, res) {
       try {
-         const result = await User.deleteById(req.params.id);
+         await User.deleteById(req.params.id);
          res.status(200).json({ msg: "Deleted successfully!" });
       } catch (err) {
          res.status(500).json({
