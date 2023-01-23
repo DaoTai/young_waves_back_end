@@ -30,7 +30,7 @@ const PostController = {
             await Post.findByIdAndUpdate(req.params.id, { ...req.body, body: newBody });
             res.status(200).json({ msg: "Edited successfully!" });
          } else {
-            res.status(400).json({ msg: "Invalid content!" });
+            throw new Error({ msg: "Invalid content!" });
          }
       } catch (err) {
          res.status(500).json({ err, msg: "Edit post failed!" });
