@@ -11,9 +11,6 @@ const likeSchema = new mongoose.Schema(
          ref: "post",
          required: true,
       },
-      isLike: {
-         type: Boolean,
-      },
    },
    {
       timestamps: true,

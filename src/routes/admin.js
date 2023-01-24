@@ -4,7 +4,7 @@ import UserController from "../app/controllers/UserController.js";
 
 const router = express.Router();
 router.get("/users", AdminController.getAllUsers);
-router.get("/trash-users", AdminController.getTrashUsers);
+router.get("/users/trash-users", AdminController.getTrashUsers);
 router.get("/users/:id", UserController.getUser);
 router.patch("/users/:id", UserController.editUser);
 router.patch("/users/:id/restore", AdminController.restoreUser);

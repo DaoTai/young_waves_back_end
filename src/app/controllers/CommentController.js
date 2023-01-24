@@ -68,16 +68,16 @@ const CommentController = {
          const idComment = req.params.idComment;
          const idPost = req.params.id;
          const isAdmin = req.user.isAdmin;
-         const isAuthor = await Comment.findOne({
+         const author = await Comment.findOne({
             user: req.user.id,
             _id: idComment,
          });
-         const isAuthorOfPost = await Post.findOne({
+         const authorOfPost = await Post.findOne({
             _id: idPost,
             author: req.user.id,
          });
 
-         if (isAuthor || isAuthorOfPost || isAdmin) {
+         if (author || authorOfPost || isAdmin) {
             await Comment.findByIdAndDelete(idComment);
             await Post.findByIdAndUpdate(idPost, {
                $pull: {
