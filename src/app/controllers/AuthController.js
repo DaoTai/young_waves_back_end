@@ -36,6 +36,14 @@ const AuthController = {
          // Hash password
          const salt = await bcrypt.genSalt(10);
          const hashedPassword = await bcrypt.hash(req.body.password, salt);
+         const isExistedUser = await User.findOne({
+            username: req.body.username,
+         });
+         if (isExistedUser) {
+            return res.status(403).json({
+               msg: "Existed username",
+            });
+         }
          // Create new user
          const newUser = new User({
             username: req.body.username,

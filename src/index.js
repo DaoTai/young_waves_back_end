@@ -14,7 +14,7 @@ connectToDB();
 // Using middlewares
 app.use(cors());
 app.use(express.json());
-// Middleware for data in the body request (POST, PUT)
+// Middleware for data in the body request (POST, PUT, PATCH)
 app.use(
    express.urlencoded({
       extended: true,
