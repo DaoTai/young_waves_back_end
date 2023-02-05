@@ -47,12 +47,9 @@ const AdminController = {
    async deleteUser(req, res) {
       try {
          await User.deleteById(req.params.id);
-         res.status(200).json({ msg: "Deleted successfully!" });
+         res.status(200).json("Deleted successfully!");
       } catch (err) {
-         res.status(500).json({
-            msg: "Deleted failed!",
-            err,
-         });
+         res.status(500).json("Deleted failed!");
       }
    },
 
@@ -60,9 +57,9 @@ const AdminController = {
    async restoreUser(req, res) {
       try {
          await User.restore({ _id: req.params.id });
-         res.status(200).json({ msg: "Restored successfully!" });
+         res.status(200).json("Restored successfully!");
       } catch (err) {
-         res.status(500).json({ msg: "Restore failed!" });
+         res.status(500).json("Restore failed!");
       }
    },
 
@@ -70,14 +67,9 @@ const AdminController = {
    async forceDeleteUser(req, res) {
       try {
          await User.findByIdAndDelete(req.params.id);
-         res.status(200).json({
-            msg: "Force delete successfully!",
-         });
+         res.status(200).json("Force delete successfully!");
       } catch (err) {
-         res.status(500).json({
-            msg: "Force deletion failed",
-            err,
-         });
+         res.status(500).json("Force deletion failed");
       }
    },
 };

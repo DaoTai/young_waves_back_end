@@ -7,7 +7,6 @@ const UserController = {
          const user = await User.findById(req.params.id);
          res.status(200).json(user);
       } catch (err) {
-         console.log(err);
          res.status(500).json(err);
       }
    },
@@ -16,12 +15,10 @@ const UserController = {
    async editUser(req, res) {
       try {
          await User.findByIdAndUpdate(req.params.id, req.body);
-         res.status(200).json({ msg: "Edited successfully!" });
+         const user = await User.findById(req.params.id);
+         res.status(201).json(user);
       } catch (err) {
-         res.status(500).json({
-            err,
-            msg: "Edited failed!",
-         });
+         res.status(500).json("Edited failed");
       }
    },
 };

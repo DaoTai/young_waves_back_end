@@ -40,9 +40,7 @@ const AuthController = {
             username: req.body.username,
          });
          if (isExistedUser) {
-            return res.status(403).json({
-               msg: "Existed username",
-            });
+            return res.status(403).json("Existed username");
          }
          // Create new user
          const newUser = new User({
@@ -66,9 +64,9 @@ const AuthController = {
    async login(req, res) {
       try {
          const user = await User.findOne({ username: req.body.username });
-         if (!user) return res.status(404).json({ msg: "Wrong username" });
+         if (!user) return res.status(404).json("Wrong username");
          const validPassword = await bcrypt.compare(req.body.password, user.password);
-         if (!validPassword) return res.status(404).json({ msg: "Wrong password" });
+         if (!validPassword) return res.status(404).json("Wrong password");
          if (user && validPassword) {
             const accessToken = AuthController.createAccessToken(user);
             const refreshToken = AuthController.createRefreshToken(user);
@@ -86,7 +84,6 @@ const AuthController = {
             });
          }
       } catch (err) {
-         console.log(err);
          res.status(500).json(err);
       }
    },
@@ -95,10 +92,10 @@ const AuthController = {
       try {
          // Get refresh token from user
          const refreshToken = req.cookies.refreshToken;
-         if (!refreshToken) return res.status(401).json({ msg: "You're not authenticated" });
+         if (!refreshToken) return res.status(401).json("You're not authenticated");
          // Check this refresh token existed
          if (!AuthController.refreshTokens.includes(refreshToken))
-            return res.status(401).json({ msg: "Refresh token is invalid" });
+            return res.status(401).json("Refresh token is invalid");
          const decodeToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_TOKEN);
          // Remove this old refresh token
          AuthController.refreshTokens = AuthController.refreshTokens.filter(
@@ -125,7 +122,7 @@ const AuthController = {
    async logout(req, res) {
       try {
          res.clearCookies("refreshToken");
-         res.status(200).json({ msg: "Log out" });
+         res.status(200).json("Log out successfully");
       } catch (err) {
          console.log(err);
       }

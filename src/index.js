@@ -13,11 +13,12 @@ connectToDB();
 
 // Using middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
 // Middleware for data in the body request (POST, PUT, PATCH)
 app.use(
    express.urlencoded({
       extended: true,
+      limit: "50mb",
    })
 );
 
