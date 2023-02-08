@@ -4,6 +4,7 @@ import { VerifyTokenAndAuthorMiddleware, VerifyTokenMiddleware } from "../app/mi
 const router = express.Router();
 
 router.get("/", PostController.show);
+router.get("/:id", PostController.detail);
 router.post("/", PostController.create);
 router.put("/:id", VerifyTokenAndAuthorMiddleware, PostController.edit);
 router.delete("/:id", VerifyTokenAndAuthorMiddleware, PostController.delete);

@@ -1,9 +1,12 @@
-import { Post, Comment } from "../models/index.js";
+import { Post, Comment, User } from "../models/index.js";
 const CommentController = {
    // [GET] comments/:id
    async show(req, res) {
       try {
          const post = await Post.findById(req.params.id).populate("comments");
+         // const user = await Comment.find({
+         //    _id: post.comments.map((comment) => comment._id),
+         // }).populate("user", "fullName");
          res.status(200).json(post.comments);
       } catch (err) {
          res.status(500).json({ err, msg: "Show comment failed!" });

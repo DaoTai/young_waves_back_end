@@ -1,13 +1,32 @@
-import { Post, Comment } from "../models/index.js";
+import { Post, Comment, User } from "../models/index.js";
 const PostController = {
    // [GET] posts/
    async show(req, res) {
       try {
-         const posts = await Post.find().populate("author");
+         const posts = await Post.find({}).sort({ createdAt: -1 }).populate("author");
          res.status(200).json(posts);
       } catch (err) {
          console.log(err);
          res.status(500).json({ err, msg: "Show post failed!" });
+      }
+   },
+
+   // [GET] posts/:id
+   async detail(req, res) {
+      try {
+         const post = await Post.findById(req.params.id).populate("author");
+         const comments = await Comment.find({
+            _id: post.comments.map((comment) => comment._id),
+         })
+            .sort({ createdAt: -1 })
+            .populate("user", {
+               fullName: 1,
+               avatar: 1,
+            });
+         res.status(200).json({ post, comments });
+      } catch (err) {
+         console.log(err);
+         res.status(500).json({ err, msg: "Get detail post failed!" });
       }
    },
 

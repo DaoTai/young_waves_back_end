@@ -16,7 +16,7 @@ const postSchema = new mongoose.Schema(
       },
       likes: [{ type: mongoose.Types.ObjectId, ref: "like" }],
       comments: [{ type: mongoose.Types.ObjectId, ref: "comment" }],
-      attachment: [{ type: String }],
+      attachments: [{ type: String }],
    },
    {
       timestamps: true,

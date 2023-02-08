@@ -5,5 +5,6 @@ const router = express.Router();
 
 router.get("/:id", UserController.getUser);
 router.patch("/:id", UserController.editUser);
+router.patch("/:id/new-password", UserController.changePasswordUser);
 
 export default router;
