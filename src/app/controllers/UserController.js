@@ -5,7 +5,7 @@ const UserController = {
    // [GET] /user/:id
    async getUser(req, res) {
       try {
-         const user = await User.findById(req.params.id);
+         const user = await User.findById(req.params.id, { password: 0 });
          res.status(200).json(user);
       } catch (err) {
          res.status(500).json(err);

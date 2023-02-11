@@ -16,7 +16,7 @@ const CommentController = {
    // [POST] comments/:id
    async create(req, res) {
       try {
-         const newComment = req.body.comment.body.trim();
+         const newComment = req.body.comment.trim();
          const idPost = req.params.id;
          if (!!newComment) {
             const comment = new Comment({
@@ -25,10 +25,11 @@ const CommentController = {
                post: idPost,
             });
             await comment.save();
+            await comment.populate("user");
             await Post.findByIdAndUpdate(idPost, {
                $push: { comments: comment },
             });
-            res.status(200).json({ msg: "Saved comment successfully!" });
+            res.status(200).json(comment);
          } else {
             throw new Error({ msg: "Invalid comment!" });
          }

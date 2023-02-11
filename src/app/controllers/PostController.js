@@ -16,7 +16,7 @@ const PostController = {
       try {
          const post = await Post.findById(req.params.id).populate("author");
          const comments = await Comment.find({
-            _id: post.comments.map((comment) => comment._id),
+            _id: { $in: post.comments },
          })
             .sort({ createdAt: -1 })
             .populate("user", {
@@ -30,11 +30,31 @@ const PostController = {
       }
    },
 
+   // [GET] posts/owner/:id
+   async ownerPosts(req, res, next) {
+      try {
+         const posts = await Post.find({
+            author: req.params.id,
+         })
+            .sort({ createdAt: -1 })
+            .populate("author");
+         res.status(200).json(posts);
+      } catch (err) {
+         console.log(err);
+         res.status(500).json({ err, msg: "Get owner posts failed!" });
+      }
+   },
+
    // [POST] posts/
    async create(req, res) {
       try {
          const newPost = new Post({ ...req.body, author: req.user.id });
          await newPost.save();
+         await newPost.populate("author", {
+            _id: 1,
+            fullName: 1,
+            avatar: 1,
+         });
          res.status(200).json(newPost);
       } catch (err) {
          res.status(500).json({ err, msg: "Create post failed!" });

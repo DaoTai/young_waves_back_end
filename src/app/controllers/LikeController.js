@@ -15,7 +15,7 @@ const LikeController = {
             authors: fullNameOfAuthors,
          });
       } catch (err) {
-         res.status(500).json({ msg: err });
+         res.status(500).json(err);
       }
    },
 
@@ -50,7 +50,7 @@ const LikeController = {
             res.status(200).json({ msg: "Liked this post successfully" });
          }
       } catch (err) {
-         res.status(500).json({ msg: err });
+         res.status(500).json(err);
       }
    },
 };

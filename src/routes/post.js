@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.get("/", PostController.show);
 router.get("/:id", PostController.detail);
+router.get("/owner/:id", PostController.ownerPosts);
 router.post("/", PostController.create);
 router.put("/:id", VerifyTokenAndAuthorMiddleware, PostController.edit);
 router.delete("/:id", VerifyTokenAndAuthorMiddleware, PostController.delete);
