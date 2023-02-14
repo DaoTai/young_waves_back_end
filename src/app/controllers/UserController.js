@@ -2,6 +2,25 @@ import User from "../models/User.js";
 import Post from "../models/Post.js";
 import bcrypt from "bcrypt";
 const UserController = {
+   // [GET] user/all
+   async getAllUsers(req, res) {
+      try {
+         const perPage = 5;
+         const page = req.query.page || 1;
+         const users = await User.find({ isAdmin: false })
+            .skip(perPage * page - perPage)
+            .limit(perPage);
+         const totalUsers = await User.find({ isAdmin: false }).countDocuments();
+         res.status(200).json({
+            users,
+            currentPage: +page,
+            maxPage: Math.ceil(totalUsers / perPage),
+         });
+      } catch (err) {
+         res.status(500).json(err);
+      }
+   },
+
    // [GET] /user/:id
    async getUser(req, res) {
       try {

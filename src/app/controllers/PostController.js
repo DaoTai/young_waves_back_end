@@ -3,7 +3,10 @@ const PostController = {
    // [GET] posts/
    async show(req, res) {
       try {
-         const posts = await Post.find({}).sort({ createdAt: -1 }).populate("author");
+         const posts = await Post.find({})
+            .sort({ createdAt: -1 })
+            .populate("author")
+            .populate("likes");
          res.status(200).json(posts);
       } catch (err) {
          console.log(err);
@@ -14,7 +17,7 @@ const PostController = {
    // [GET] posts/:id
    async detail(req, res) {
       try {
-         const post = await Post.findById(req.params.id).populate("author");
+         const post = await Post.findById(req.params.id).populate("author").populate("likes");
          const comments = await Comment.find({
             _id: { $in: post.comments },
          })
