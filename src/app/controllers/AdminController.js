@@ -1,42 +1,35 @@
-import User from "../models/User.js";
-
+import { User, Post, Comment } from "../models/index.js";
 const AdminController = {
+   // [PATCH] admin/authorization/:id
+   async authorize(req, res) {
+      try {
+         await User.findByIdAndUpdate(req.params.id, {
+            isAdmin: !req.body.isAdmin,
+         });
+         res.status(200).json("Authorize user successfully");
+      } catch (err) {
+         res.status(500).json(err);
+      }
+   },
+
    // [GET] admin/users
    async getAllUsers(req, res) {
       try {
-         const perPage = 5;
-         const page = req.query.page || 1;
-         const isAdmin = req.query.hasOwnProperty("admin");
-         const users = await User.find({ isAdmin: isAdmin })
-            .skip(perPage * page - perPage)
-            .limit(perPage);
-         const totalUsers = await User.find({ isAdmin: isAdmin }).countDocuments();
-         res.status(200).json({
-            users,
-            currentPage: +page,
-            maxPage: Math.ceil(totalUsers / perPage),
-         });
+         const isAdmin = req.query.admin;
+         const users = await User.find({ isAdmin: isAdmin, _id: { $ne: req.user.id } });
+         res.status(200).json(users);
       } catch (err) {
          console.log(err);
          res.status(500).json(err);
       }
    },
 
-   // [GET] admin/trash-users
+   // [GET] admin/users/trash-users
    async getTrashUsers(req, res) {
       try {
-         const perPage = 5;
-         const page = req.query.page || 1;
-         const isAdmin = req.query.hasOwnProperty("admin");
-         const users = await User.findDeleted({ isAdmin: isAdmin })
-            .skip(perPage * page - perPage)
-            .limit(perPage);
-         const totalUsers = await User.findDeleted({ isAdmin: isAdmin }).countDocuments();
-         res.status(200).json({
-            users,
-            currentPage: +page,
-            maxPage: Math.ceil(totalUsers / perPage),
-         });
+         const isAdmin = req.query.admin;
+         const users = await User.findDeleted({ isAdmin: isAdmin });
+         res.status(200).json(users);
       } catch (err) {
          console.log(err);
          res.status(500).json(err);
@@ -47,6 +40,12 @@ const AdminController = {
    async deleteUser(req, res) {
       try {
          await User.deleteById(req.params.id);
+         await Post.delete({
+            author: req.params.id,
+         });
+         await Comment.delete({
+            user: req.params.id,
+         });
          res.status(200).json("Deleted successfully!");
       } catch (err) {
          res.status(500).json("Deleted failed!");
@@ -57,6 +56,8 @@ const AdminController = {
    async restoreUser(req, res) {
       try {
          await User.restore({ _id: req.params.id });
+         await Post.restore({ author: req.params.id });
+         await Comment.restore({ user: req.params.id });
          res.status(200).json("Restored successfully!");
       } catch (err) {
          res.status(500).json("Restore failed!");
@@ -67,6 +68,8 @@ const AdminController = {
    async forceDeleteUser(req, res) {
       try {
          await User.findByIdAndDelete(req.params.id);
+         await Post.deleteMany({ author: req.params.id });
+         await Comment.deleteMany({ user: req.params.id });
          res.status(200).json("Force delete successfully!");
       } catch (err) {
          res.status(500).json("Force deletion failed");

@@ -3,6 +3,7 @@ import AdminController from "../app/controllers/AdminController.js";
 import UserController from "../app/controllers/UserController.js";
 
 const router = express.Router();
+router.patch("/authorization/:id", AdminController.authorize);
 router.get("/users", AdminController.getAllUsers);
 router.get("/users/trash-users", AdminController.getTrashUsers);
 router.get("/users/:id", UserController.getUser);

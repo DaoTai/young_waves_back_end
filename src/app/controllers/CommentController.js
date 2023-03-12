@@ -41,7 +41,7 @@ const CommentController = {
    // [PUT] comments/:id/:idComment
    async edit(req, res) {
       try {
-         const newComment = req.body.comment.body.trim();
+         const newComment = req.body.comment.trim();
          const idComment = req.params.idComment;
          const isAuthor = await Comment.findOne({
             user: req.user.id,

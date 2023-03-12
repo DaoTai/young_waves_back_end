@@ -17,6 +17,7 @@ const LikeController = {
       }
    },
 
+   // Dính bug
    // [POST] likes/:id
    async like(req, res) {
       try {
@@ -28,18 +29,21 @@ const LikeController = {
             _id: { $in: post.likes },
          });
          if (isLiked) {
+            // Want to unlike
+            // Remove id like in list like of post
             await Post.findByIdAndUpdate(req.params.id, {
                $pull: {
                   likes: like._id,
                },
             });
-            const post = await Post.findById(req.params.id);
-            console.log(post);
+            // Remove like
             await Like.deleteOne({
                author: req.user.id,
             });
             res.status(201).json(like);
          } else {
+            // Want to like
+            // Create like instance
             const newLike = new Like({
                author: req.user.id,
                post: req.params.id,
@@ -47,6 +51,7 @@ const LikeController = {
             });
             await newLike.save();
 
+            // Update list like in post
             await Post.findByIdAndUpdate(req.params.id, {
                $push: {
                   likes: newLike,
@@ -55,6 +60,7 @@ const LikeController = {
             res.status(200).json(newLike);
          }
       } catch (err) {
+         console.log("Error: ", err);
          res.status(500).json(err);
       }
    },

@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 import mongooseDelete from "mongoose-delete";
 const userSchema = new mongoose.Schema(
    {
-      username: { type: String, required: true, minLength: 3, maxLength: 15, unique: true },
+      username: { type: String, required: true, minLength: 6, maxLength: 15, unique: true },
       password: { type: String, minLength: 6, required: true },
       isAdmin: { type: Boolean, default: false },
-      fullName: { type: String, minLength: 6, required: true },
+      fullName: { type: String, minLength: 3, required: true },
       region: { type: String },
       city: { type: String, minLength: 6, maxLength: 35 },
       dob: { type: String, minLength: 8 },

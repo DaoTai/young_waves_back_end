@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import mongooseDelete from "mongoose-delete";
 const commentSchema = new mongoose.Schema(
    {
       user: {
@@ -20,5 +21,6 @@ const commentSchema = new mongoose.Schema(
    }
 );
 
+commentSchema.plugin(mongooseDelete, { overrideMethods: true, deletedAt: true });
 const CommentModel = mongoose.model("comment", commentSchema);
 export default CommentModel;

@@ -5,18 +5,26 @@ const UserController = {
    // [GET] user/all
    async getAllUsers(req, res) {
       try {
-         const perPage = 5;
+         const perPage = 6;
          const page = req.query.page || 1;
-         const users = await User.find({ isAdmin: false })
+         const regex = new RegExp(req.query?.name, "i");
+         const conditionFind = [
+            { isAdmin: false, _id: { $ne: req.user.id }, fullName: { $regex: regex } },
+            {
+               password: 0,
+            },
+         ];
+         const users = await User.find(...conditionFind)
             .skip(perPage * page - perPage)
             .limit(perPage);
-         const totalUsers = await User.find({ isAdmin: false }).countDocuments();
+         const totalUsers = await User.find(...conditionFind).countDocuments();
          res.status(200).json({
             users,
             currentPage: +page,
             maxPage: Math.ceil(totalUsers / perPage),
          });
       } catch (err) {
+         console.log("Loi: ", err);
          res.status(500).json(err);
       }
    },

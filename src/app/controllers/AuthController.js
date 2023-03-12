@@ -13,7 +13,7 @@ const AuthController = {
          },
          process.env.JWT_ACCESS_TOKEN,
          {
-            expiresIn: "30m",
+            expiresIn: "1d",
          }
       );
    },
@@ -33,25 +33,35 @@ const AuthController = {
    // [POST] auth/register
    async register(req, res) {
       try {
-         // Hash password
-         const salt = await bcrypt.genSalt(10);
-         const hashedPassword = await bcrypt.hash(req.body.password, salt);
+         const { username, fullName, region, address, gender, email, dob, password, isAdmin } =
+            req.body;
+         // Validate
+         if (username.length < 6) {
+            return res.status(401).json("User name is least 6 characters");
+         }
+         if (password.length < 6) {
+            return res.status(401).json("Password is least 6 characters");
+         }
          const isExistedUser = await User.findOne({
-            username: req.body.username,
+            username: username,
          });
          if (isExistedUser) {
-            return res.status(403).json("Existed username");
+            return res.status(401).json("Existed username");
          }
+         // Hash password
+         const salt = await bcrypt.genSalt(10);
+         const hashedPassword = await bcrypt.hash(password, salt);
          // Create new user
          const newUser = new User({
-            username: req.body.username,
+            username: username,
             password: hashedPassword,
-            fullName: req.body.fullName,
-            region: req.body.region,
-            address: req.body.address,
-            gender: req.body.gender,
-            email: req.body.email,
-            dob: req.body.dob,
+            fullName: fullName,
+            region: region,
+            address: address,
+            gender: gender,
+            email: email,
+            dob: dob,
+            isAdmin,
          });
          // Save to DB
          const user = await newUser.save();
@@ -79,7 +89,7 @@ const AuthController = {
                sameSite: "strict",
             });
             return res.status(200).json({
-               payload,
+               user: payload,
                accessToken,
             });
          }

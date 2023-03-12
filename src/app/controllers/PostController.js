@@ -10,7 +10,22 @@ const PostController = {
          res.status(200).json(posts);
       } catch (err) {
          console.log(err);
-         res.status(500).json({ err, msg: "Show post failed!" });
+         res.status(500).json({ err, msg: "Show posts failed!" });
+      }
+   },
+
+   // [GET] posts/search
+   async search(req, res) {
+      try {
+         const regex = new RegExp(req.query?.q, "i");
+         const posts = await Post.find({ body: { $regex: regex } })
+            .sort({ createdAt: -1 })
+            .populate("author")
+            .populate("likes");
+         res.status(200).json(posts);
+      } catch (err) {
+         console.log(err);
+         res.status(500).json({ err, msg: "Show posts failed!" });
       }
    },
 
@@ -40,7 +55,8 @@ const PostController = {
             author: req.params.id,
          })
             .sort({ createdAt: -1 })
-            .populate("author");
+            .populate("author")
+            .populate("likes");
          res.status(200).json(posts);
       } catch (err) {
          console.log(err);
@@ -61,6 +77,57 @@ const PostController = {
          res.status(200).json(newPost);
       } catch (err) {
          res.status(500).json({ err, msg: "Create post failed!" });
+      }
+   },
+
+   // [POST] posts/trash
+   async getTrash(req, res) {
+      try {
+         const perPage = 5;
+         const page = req.query.page || 1;
+
+         const posts = await Post.findDeleted({
+            author: req.user.id,
+         })
+            .sort({ createdAt: -1 })
+            .populate("author")
+            .populate("likes")
+            .skip(perPage * page - perPage)
+            .limit(perPage);
+         const totalTrash = await Post.countDocumentsDeleted({
+            author: req.user.id,
+         });
+         res.status(200).json({
+            posts,
+            perPage: perPage,
+            maxPage: Math.ceil(totalTrash / perPage),
+         });
+      } catch (err) {
+         console.log(err);
+         res.status(500).json({ err, msg: "Show trash post failed!" });
+      }
+   },
+
+   // [POST] posts/trash:id
+   async getTrashDetail(req, res) {
+      try {
+         const post = await Post.findOneDeleted({
+            _id: req.params.id,
+         })
+            .populate("author")
+            .populate("likes");
+         const comments = await Comment.find({
+            _id: { $in: post.comments },
+         })
+            .sort({ createdAt: -1 })
+            .populate("user", {
+               fullName: 1,
+               avatar: 1,
+            });
+         res.status(200).json({ post, comments });
+      } catch (err) {
+         console.log(err);
+         res.status(500).json({ err, msg: "Get detail post failed!" });
       }
    },
 
@@ -93,7 +160,8 @@ const PostController = {
    async restore(req, res) {
       try {
          await Post.restore({ _id: req.params.id });
-         res.status(200).json({ msg: "Restore post successfully!" });
+         const post = await Post.findById(req.params.id);
+         res.status(200).json(post);
       } catch (err) {
          res.status(500).json({ err, msg: "Restore post failed!" });
       }
