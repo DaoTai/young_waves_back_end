@@ -3,10 +3,7 @@ const PostController = {
    // [GET] posts/
    async show(req, res) {
       try {
-         const posts = await Post.find({})
-            .sort({ createdAt: -1 })
-            .populate("author")
-            .populate("likes");
+         const posts = await Post.find({}).sort({ createdAt: -1 }).populate("author");
          res.status(200).json(posts);
       } catch (err) {
          console.log(err);
@@ -55,8 +52,7 @@ const PostController = {
             author: req.params.id,
          })
             .sort({ createdAt: -1 })
-            .populate("author")
-            .populate("likes");
+            .populate("author");
          res.status(200).json(posts);
       } catch (err) {
          console.log(err);
@@ -108,7 +104,7 @@ const PostController = {
       }
    },
 
-   // [POST] posts/trash:id
+   // [POST] posts/trash/:id
    async getTrashDetail(req, res) {
       try {
          const post = await Post.findOneDeleted({
@@ -128,6 +124,47 @@ const PostController = {
       } catch (err) {
          console.log(err);
          res.status(500).json({ err, msg: "Get detail post failed!" });
+      }
+   },
+
+   // [POST] posts/likes/:id
+   async like(req, res) {
+      try {
+         const idPost = req.params.id;
+         //   check exist like
+         const isExistedLike = await Post.findOne({
+            _id: idPost,
+            likes: {
+               $in: [req.user.id],
+            },
+         });
+         if (isExistedLike) {
+            await Post.updateOne(
+               {
+                  _id: idPost,
+               },
+               {
+                  $pull: {
+                     likes: req.user.id,
+                  },
+               }
+            );
+            res.status(204).json("Delete like successfully");
+         } else {
+            await Post.updateOne(
+               {
+                  _id: idPost,
+               },
+               {
+                  $push: {
+                     likes: req.user.id,
+                  },
+               }
+            );
+            res.status(201).json("Create new like successfully");
+         }
+      } catch (err) {
+         res.status(500).json({ err, msg: "Handle like post failed" });
       }
    },
 

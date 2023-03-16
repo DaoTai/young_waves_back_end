@@ -2,7 +2,6 @@ import express from "express";
 import LikeController from "../app/controllers/LikeController.js";
 const router = express.Router();
 
-router.get("/:id", LikeController.show);
-router.post("/:id", LikeController.like);
+router.get("/:idPost", LikeController.show);
 
 export default router;

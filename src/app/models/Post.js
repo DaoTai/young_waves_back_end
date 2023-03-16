@@ -14,7 +14,7 @@ const postSchema = new mongoose.Schema(
          maxLength: 10000,
          required: true,
       },
-      likes: [{ type: Number, ref: "like" }],
+      likes: [{ type: mongoose.Types.ObjectId, ref: "user" }],
       comments: [{ type: mongoose.Types.ObjectId, ref: "comment" }],
       attachments: [{ type: String }],
    },

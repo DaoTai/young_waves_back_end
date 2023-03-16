@@ -32,9 +32,20 @@ const AuthController = {
    },
    // [POST] auth/register
    async register(req, res) {
+      console.log("body: ", req.body);
       try {
-         const { username, fullName, region, address, gender, email, dob, password, isAdmin } =
-            req.body;
+         const {
+            username,
+            fullName,
+            region,
+            address,
+            gender,
+            email,
+            dob,
+            password,
+            city,
+            isAdmin,
+         } = req.body;
          // Validate
          if (username.length < 6) {
             return res.status(401).json("User name is least 6 characters");
@@ -53,14 +64,15 @@ const AuthController = {
          const hashedPassword = await bcrypt.hash(password, salt);
          // Create new user
          const newUser = new User({
-            username: username,
+            username,
             password: hashedPassword,
-            fullName: fullName,
-            region: region,
-            address: address,
-            gender: gender,
-            email: email,
-            dob: dob,
+            fullName,
+            region,
+            address,
+            gender,
+            email,
+            dob,
+            city,
             isAdmin,
          });
          // Save to DB
