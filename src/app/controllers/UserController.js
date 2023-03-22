@@ -9,7 +9,7 @@ const UserController = {
          const page = req.query.page || 1;
          const regex = new RegExp(req.query?.name, "i");
          const conditionFind = [
-            { isAdmin: false, _id: { $ne: req.user.id }, fullName: { $regex: regex } },
+            { _id: { $ne: req.user.id }, fullName: { $regex: regex } },
             {
                password: 0,
             },
@@ -33,7 +33,9 @@ const UserController = {
    async getUser(req, res) {
       try {
          const user = await User.findById(req.params.id, { password: 0 });
-         res.status(200).json(user);
+         const totalPosts = await Post.find({ author: req.params.id }).countDocuments();
+         const result = { ...user._doc, totalPosts };
+         res.status(200).json(result);
       } catch (err) {
          res.status(500).json(err);
       }
@@ -72,6 +74,53 @@ const UserController = {
          }
       } catch (err) {
          res.status(500).json("Change password failed");
+      }
+   },
+
+   // [GET] /user/friends/:id
+   async getFriends(req, res) {
+      try {
+         const perPage = 6;
+         const page = req.query.page || 1;
+         const user = await User.findById(req.params.id, { friends: 1 });
+         const friends = await User.find({
+            _id: {
+               $in: user.friends,
+            },
+         })
+            .skip(perPage * page - perPage)
+            .limit(perPage);
+         const maxPage = Math.ceil(user.friends.length / perPage);
+         res.status(200).json({ friends, maxPage });
+      } catch (err) {
+         res.status(500).json("Get friends failed");
+      }
+   },
+
+   // [PATCH] /user/add-friend/:id
+   async addFriend(req, res) {
+      try {
+         const currentUser = await User.findById(req.user.id);
+         const user = await User.findById(req.params.id);
+         if (!currentUser.friends.includes(user._id)) {
+            // Add your friend
+            await currentUser.updateOne({
+               $push: {
+                  friends: req.params.id,
+               },
+            });
+            // Add their friend
+            await user.updateOne({
+               $push: {
+                  friends: req.user.id,
+               },
+            });
+            res.status(200).json(user);
+         } else {
+            res.status(403).json("You added this user");
+         }
+      } catch (err) {
+         res.status(500).json("Add friend failed");
       }
    },
 };
