@@ -24,7 +24,6 @@ const UserController = {
             maxPage: Math.ceil(totalUsers / perPage),
          });
       } catch (err) {
-         console.log("Loi: ", err);
          res.status(500).json(err);
       }
    },
