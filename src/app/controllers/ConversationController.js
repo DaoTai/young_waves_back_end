@@ -1,8 +1,7 @@
-import Conversation from "../models/Conversation.js";
-
+import { Conversation, Message } from "../models/index.js";
 const ConversationController = {
-   // [GET] conversation/
-   async getAllConversation(req, res) {
+   // [GET] conversations/
+   async getUserConversations(req, res) {
       try {
          const conversations = await Conversation.find({
             members: {
@@ -18,17 +17,39 @@ const ConversationController = {
       }
    },
 
-   // [POST] conversation/
+   // [GET] conversations/:id
+   async getDetailConversation(req, res) {
+      try {
+         const idConversation = req.params.id;
+         const messages = await Message.find({
+            idConversation: idConversation,
+         });
+         res.status(200).json(messages);
+      } catch (err) {
+         res.status(500).json(err);
+      }
+   },
+
+   // [POST] conversations/
    async addConsevation(req, res) {
       try {
-         if (req.user.id && req.body.idFriend) {
-            const newConversation = new Conversation({
-               members: [req.user.id, req.body.idFriend],
-            });
-            const savedNewConversation = await newConversation.save();
-            res.status(200).json(savedNewConversation);
+         const existed = await Conversation.findOne({
+            members: {
+               $all: [req.user.id, req.body.idFriend],
+            },
+         });
+         if (!existed) {
+            if (req.user.id && req.body.idFriend) {
+               const newConversation = new Conversation({
+                  members: [req.user.id, req.body.idFriend],
+               });
+               const savedNewConversation = await newConversation.save();
+               res.status(200).json(savedNewConversation);
+            } else {
+               res.status(500).json("Add conservation failed");
+            }
          } else {
-            res.status(500).json("Add conservation failed");
+            res.status(403).json("You are already friends");
          }
       } catch (err) {
          res.status(500).json(err);

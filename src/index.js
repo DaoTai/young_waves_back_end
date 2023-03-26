@@ -27,34 +27,48 @@ app.use(
 
 // ===================================
 // Socket
-let users = [];
-const addUser = (userId, socketId) => {
-   !users.some((user) => user.userId === userId) && users.push({ userId, socketId });
-};
-
-const removeUser = (socketId) => {
-   users = users.filter((user) => user.socketId !== socketId);
-};
-
-const getUser = (userId) => {
-   return users.find((user) => user.userId === userId);
-};
 const socketIo = new Server(server, {
    cors: {
       origin: "*",
    },
 });
 
+let users = [];
+const addUser = (idUser, idSocket) => {
+   !users.some((user) => user.idUser === idUser) && users.push({ idUser, idSocket });
+};
+
+const removeUser = (idSocket) => {
+   users = users.filter((user) => user.idSocket !== idSocket);
+};
+
+const getUser = (idUser) => {
+   return users.find((user) => user.idUser === idUser);
+};
+
 socketIo.on("connection", (socket) => {
-   socket.emit("getId", socket.id);
-   //
-   socket.on("sendDataClient", function (data) {
-      socketIo.emit("sendDataServer", { data });
+   // Connected
+   console.log("user connected");
+
+   // Add user to socket
+   socket.on("addUser", (idUser) => {
+      addUser(idUser, socket.id);
+   });
+
+   //send message
+   socket.on("sendMessage", function ({ idSender, idReceiver, text }) {
+      const user = getUser(idReceiver);
+      socketIo.to(user?.idSocket).emit("getMessage", {
+         idSender,
+         text,
+      });
    });
 
    // When disconnect
    socket.on("disconnect", () => {
       console.log("Client disconnected");
+      removeUser(socket.id);
+      console.log("users: ", users);
    });
 });
 

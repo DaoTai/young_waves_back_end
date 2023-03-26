@@ -4,7 +4,8 @@ import userRouter from "./user.js";
 import postRouter from "./post.js";
 import commentRouter from "./comment.js";
 import likeRouter from "./like.js";
-import conservationRouter from "./conservation.js";
+import conversationRouter from "./conversation.js";
+import messageRouter from "./message.js";
 import { VerifyTokenAndAdminMiddleware, VerifyTokenMiddleware } from "../app/middlewares/index.js";
 const route = (app) => {
    app.use("/auth", authRouter);
@@ -13,7 +14,8 @@ const route = (app) => {
    app.use("/posts", VerifyTokenMiddleware, postRouter);
    app.use("/comments", VerifyTokenMiddleware, commentRouter);
    app.use("/likes", VerifyTokenMiddleware, likeRouter);
-   app.use("/conversation", VerifyTokenMiddleware, conservationRouter);
+   app.use("/conversations", VerifyTokenMiddleware, conversationRouter);
+   app.use("/messages", VerifyTokenMiddleware, messageRouter);
 };
 
 export default route;

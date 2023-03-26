@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 const messageSchema = new mongoose.Schema(
    {
-      idConservation: { type: mongoose.Types.ObjectId, ref: "conversation" },
+      idConversation: { type: mongoose.Types.ObjectId, ref: "conversation" },
       sender: {
          type: mongoose.Types.ObjectId,
          ref: "user",
@@ -15,5 +15,5 @@ const messageSchema = new mongoose.Schema(
    }
 );
 
-const MessageModel = mongoose.model("conversation", messageSchema);
+const MessageModel = mongoose.model("message", messageSchema);
 export default MessageModel;
