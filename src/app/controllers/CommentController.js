@@ -54,12 +54,12 @@ const CommentController = {
                      body: newComment,
                   },
                });
-               res.status(200).json({ msg: "Edited comment successfully!" });
+               res.status(200).json("Edited comment successfully!");
             } else {
-               throw new Error({ msg: "Invalid comment!" });
+               throw new Error("Invalid comment!");
             }
          } else {
-            res.status(403).json({ msg: "You don't have permission to edit this comment" });
+            res.status(403).json("You don't have permission to edit this comment");
          }
       } catch (err) {
          res.status(500).json({ err, msg: "Edit failed!" });

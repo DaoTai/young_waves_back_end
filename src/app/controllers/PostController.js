@@ -127,8 +127,39 @@ const PostController = {
       }
    },
 
-   // [POST] posts/likes/:id
+   // [POST] posts/:id/like
    async like(req, res) {
+      try {
+         const idPost = req.params.id;
+         //   check exist like
+         const isExistedLike = await Post.findOne({
+            _id: idPost,
+            likes: {
+               $in: [req.user.id],
+            },
+         });
+         if (isExistedLike) {
+            return res.status(400).json("Like existed");
+         } else {
+            await Post.updateOne(
+               {
+                  _id: idPost,
+               },
+               {
+                  $push: {
+                     likes: req.user.id,
+                  },
+               }
+            );
+            return res.status(200).json(req.user.id);
+         }
+      } catch (err) {
+         res.status(500).json("Like failed");
+      }
+   },
+
+   // [POST] posts/:id/unlike
+   async unlike(req, res, next) {
       try {
          const idPost = req.params.id;
          //   check exist like
@@ -149,31 +180,24 @@ const PostController = {
                   },
                }
             );
-            res.status(204).json("Delete like successfully");
+            res.status(200).json("Unlike successfully");
          } else {
-            await Post.updateOne(
-               {
-                  _id: idPost,
-               },
-               {
-                  $push: {
-                     likes: req.user.id,
-                  },
-               }
-            );
-            res.status(201).json("Create new like successfully");
+            res.status(400).json("Ever like");
          }
       } catch (err) {
-         res.status(500).json({ err, msg: "Handle like post failed" });
+         res.status(500).json("Unlike failed");
       }
    },
-
    // [PUT] posts/:id
    async edit(req, res) {
       try {
-         const newBody = req.body.body.trim();
-         if (!!newBody) {
-            await Post.findByIdAndUpdate(req.params.id, { ...req.body, body: newBody });
+         const { status, body, attachments } = req.body;
+         if (body.trim()) {
+            await Post.findByIdAndUpdate(req.params.id, {
+               body,
+               status,
+               attachments,
+            });
             res.status(200).json({ msg: "Edited successfully!" });
          } else {
             throw new Error({ msg: "Invalid content!" });

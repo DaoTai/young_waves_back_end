@@ -5,7 +5,7 @@ const UserController = {
    // [GET] user/all
    async getAllUsers(req, res) {
       try {
-         const perPage = 6;
+         const perPage = 12;
          const page = req.query.page || 1;
          const regex = new RegExp(req.query?.name, "i");
          const conditionFind = [
