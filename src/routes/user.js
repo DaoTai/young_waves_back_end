@@ -9,4 +9,5 @@ router.get("/friends/:id", UserController.getFriends);
 router.patch("/:id", UserController.editUser);
 router.patch("/:id/new-password", UserController.changePasswordUser);
 router.patch("/add-friend/:id", UserController.addFriend);
+router.patch("/cancel-friend/:id", UserController.cancelFriend);
 export default router;

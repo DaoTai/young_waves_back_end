@@ -79,9 +79,8 @@ const PostController = {
    // [POST] posts/trash
    async getTrash(req, res) {
       try {
-         const perPage = 5;
+         const perPage = 10;
          const page = req.query.page || 1;
-
          const posts = await Post.findDeleted({
             author: req.user.id,
          })
@@ -95,7 +94,7 @@ const PostController = {
          });
          res.status(200).json({
             posts,
-            perPage: perPage,
+            page,
             maxPage: Math.ceil(totalTrash / perPage),
          });
       } catch (err) {

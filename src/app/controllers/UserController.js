@@ -122,6 +122,32 @@ const UserController = {
          res.status(500).json("Add friend failed");
       }
    },
+   // [PATCH] /user/cancel-friend/:id
+   async cancelFriend(req, res) {
+      try {
+         const currentUser = await User.findById(req.user.id);
+         const user = await User.findById(req.params.id);
+         if (currentUser.friends.includes(user._id)) {
+            // Cancel your friend
+            await currentUser.updateOne({
+               $pull: {
+                  friends: req.params.id,
+               },
+            });
+            // Add their friend
+            await user.updateOne({
+               $pull: {
+                  friends: req.user.id,
+               },
+            });
+            res.status(200).json(user);
+         } else {
+            res.status(403).json("You canceled this user");
+         }
+      } catch (err) {
+         res.status(500).json(err);
+      }
+   },
 };
 
 export default UserController;

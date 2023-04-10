@@ -4,7 +4,7 @@ import { VerifyTokenMiddleware, VerifyTokenAndAuthorMiddleware } from "../app/mi
 const router = express.Router();
 
 router.get("/:id", CommentController.show);
-router.post("/:id", CommentController.create);
+router.post("/:idPost", CommentController.create);
 router.put("/:id/:idComment", CommentController.edit);
 router.delete("/:id/:idComment", CommentController.delete);
 
