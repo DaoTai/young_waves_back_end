@@ -49,7 +49,7 @@ const ConversationController = {
                res.status(500).json("Add conservation failed");
             }
          } else {
-            res.status(403).json("You had conversation");
+            res.status(403).json("You had this conversation");
          }
       } catch (err) {
          res.status(500).json(err);

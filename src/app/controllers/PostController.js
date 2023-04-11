@@ -37,6 +37,7 @@ const PostController = {
             .populate("user", {
                fullName: 1,
                avatar: 1,
+               isAdmin: 1,
             });
          res.status(200).json({ post, comments });
       } catch (err) {

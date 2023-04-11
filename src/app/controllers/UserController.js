@@ -1,6 +1,8 @@
 import User from "../models/User.js";
 import Post from "../models/Post.js";
+import Conversation from "../models/Conversation.js";
 import bcrypt from "bcrypt";
+
 const UserController = {
    // [GET] user/all
    async getAllUsers(req, res) {
@@ -81,15 +83,46 @@ const UserController = {
       try {
          const perPage = 6;
          const page = req.query.page || 1;
+         let friends = [];
+         let maxPage = 0;
+         const searchValue = new RegExp(req.query.searchValue, "i");
+         const displayedData = {
+            _id: 1,
+            avatar: 1,
+            fullName: 1,
+         };
+         // Get user's list id friends
          const user = await User.findById(req.params.id, { friends: 1 });
-         const friends = await User.find({
-            _id: {
-               $in: user.friends,
-            },
-         })
-            .skip(perPage * page - perPage)
-            .limit(perPage);
-         const maxPage = Math.ceil(user.friends.length / perPage);
+         if (req.query.searchValue) {
+            const conditionFind = [
+               {
+                  _id: {
+                     $in: user.friends,
+                  },
+                  fullName: { $regex: searchValue },
+               },
+               displayedData,
+            ];
+            friends = await User.find(...conditionFind)
+               .skip(perPage * page - perPage)
+               .limit(perPage);
+            const count = await User.find(...conditionFind).countDocuments();
+            maxPage = Math.ceil(count / perPage);
+         } else {
+            // Get information of users
+            friends = await User.find(
+               {
+                  _id: {
+                     $in: user.friends,
+                  },
+               },
+               displayedData
+            )
+               .skip(perPage * page - perPage)
+               .limit(perPage);
+            maxPage = Math.ceil(user.friends.length / perPage);
+         }
+
          res.status(200).json({ friends, maxPage });
       } catch (err) {
          res.status(500).json("Get friends failed");
@@ -114,7 +147,13 @@ const UserController = {
                   friends: req.user.id,
                },
             });
-            res.status(200).json(user);
+            // Check existed conversation
+            const existedConversation = await Conversation.findOne({
+               members: {
+                  $all: [req.user.id, req.params.id],
+               },
+            });
+            res.status(200).json({ user, existedConversation: !!existedConversation });
          } else {
             res.status(403).json("You added this user");
          }
