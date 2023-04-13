@@ -9,13 +9,20 @@ import route from "./routes/index.js";
 // Using env
 dotenv.config();
 const app = express();
+
 const port = process.env.PORT || 8000;
 const server = http.createServer(app);
 // Connect to DB
 connectToDB();
 
 // Using middlewares
-app.use(cors());
+app.use(cookieParser());
+app.use(
+   cors({
+      credentials: true,
+      origin: "http://localhost:5173",
+   })
+);
 app.use(express.json({ limit: process.env.CAPACITY_JSON_DATA }));
 // Middleware for data in the body request (POST, PUT, PATCH)
 app.use(

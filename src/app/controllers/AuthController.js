@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
 const AuthController = {
+   // Store refresh token
    refreshTokens: [],
    // Create access token
    createAccessToken(user) {
@@ -110,6 +111,10 @@ const AuthController = {
          res.status(500).json(err);
       }
    },
+   // Chức năng của refresh token: như 1 phiếu chứng nhận rằng tôi có quyền được cấp 1 access token mới lần nữa
+   // Refresh token tạo ra không có mục đích làm access token mới
+   // Thời gian tồn tại của refresh token lâu hơn access token ==> (đảm bảo hiệu lực)
+
    // [POST] auth/refresh
    async refresh(req, res) {
       try {
@@ -128,7 +133,7 @@ const AuthController = {
          const newAccessToken = AuthController.createAccessToken(decodeToken);
          const newRefreshToken = AuthController.createRefreshToken(decodeToken);
          AuthController.refreshTokens.push(newRefreshToken);
-         res.cookie("refreshToken", refreshToken, {
+         res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: false,
             path: "/",
@@ -136,7 +141,7 @@ const AuthController = {
          });
          return res.status(200).json({ accessToken: newAccessToken });
       } catch (err) {
-         console.log(err);
+         // Example: refresh token is expired
          res.status(500).json(err);
       }
    },
