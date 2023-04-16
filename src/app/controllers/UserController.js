@@ -11,7 +11,7 @@ const UserController = {
          const page = req.query.page || 1;
          const regex = new RegExp(req.query?.name, "i");
          const conditionFind = [
-            { _id: { $ne: req.user.id }, fullName: { $regex: regex } },
+            { _id: { $ne: req.user._id }, fullName: { $regex: regex } },
             {
                password: 0,
             },
@@ -132,7 +132,7 @@ const UserController = {
    // [PATCH] /user/add-friend/:id
    async addFriend(req, res) {
       try {
-         const currentUser = await User.findById(req.user.id);
+         const currentUser = await User.findById(req.user._id);
          const user = await User.findById(req.params.id);
          if (!currentUser.friends.includes(user._id)) {
             // Add your friend
@@ -144,13 +144,13 @@ const UserController = {
             // Add their friend
             await user.updateOne({
                $push: {
-                  friends: req.user.id,
+                  friends: req.user._id,
                },
             });
             // Check existed conversation
             const existedConversation = await Conversation.findOne({
                members: {
-                  $all: [req.user.id, req.params.id],
+                  $all: [req.user._id, req.params.id],
                },
             });
             res.status(200).json({ user, existedConversation: !!existedConversation });
@@ -164,7 +164,7 @@ const UserController = {
    // [PATCH] /user/cancel-friend/:id
    async cancelFriend(req, res) {
       try {
-         const currentUser = await User.findById(req.user.id);
+         const currentUser = await User.findById(req.user._id);
          const user = await User.findById(req.params.id);
          if (currentUser.friends.includes(user._id)) {
             // Cancel your friend
@@ -176,7 +176,7 @@ const UserController = {
             // Add their friend
             await user.updateOne({
                $pull: {
-                  friends: req.user.id,
+                  friends: req.user._id,
                },
             });
             res.status(200).json(user);

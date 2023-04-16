@@ -16,7 +16,7 @@ const AdminController = {
    async getAllUsers(req, res) {
       try {
          const isAdmin = req.query.admin;
-         const users = await User.find({ isAdmin: isAdmin, _id: { $ne: req.user.id } });
+         const users = await User.find({ isAdmin: isAdmin, _id: { $ne: req.user._id } });
          res.status(200).json(users);
       } catch (err) {
          console.log(err);

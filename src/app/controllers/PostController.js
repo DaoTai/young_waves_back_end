@@ -56,7 +56,7 @@ const PostController = {
             .populate("author");
          res.status(200).json(posts);
       } catch (err) {
-         console.log(err);
+         console.log("Error owner post: ", err);
          res.status(500).json({ err, msg: "Get owner posts failed!" });
       }
    },
@@ -64,7 +64,7 @@ const PostController = {
    // [POST] posts/
    async create(req, res) {
       try {
-         const newPost = new Post({ ...req.body, author: req.user.id });
+         const newPost = new Post({ ...req.body, author: req.user._id });
          await newPost.save();
          await newPost.populate("author", {
             _id: 1,
@@ -83,7 +83,7 @@ const PostController = {
          const perPage = 10;
          const page = req.query.page || 1;
          const posts = await Post.findDeleted({
-            author: req.user.id,
+            author: req.user._id,
          })
             .sort({ createdAt: -1 })
             .populate("author")
@@ -91,7 +91,7 @@ const PostController = {
             .skip(perPage * page - perPage)
             .limit(perPage);
          const totalTrash = await Post.countDocumentsDeleted({
-            author: req.user.id,
+            author: req.user._id,
          });
          res.status(200).json({
             posts,
@@ -135,7 +135,7 @@ const PostController = {
          const isExistedLike = await Post.findOne({
             _id: idPost,
             likes: {
-               $in: [req.user.id],
+               $in: [req.user._id],
             },
          });
          if (isExistedLike) {
@@ -147,11 +147,11 @@ const PostController = {
                },
                {
                   $push: {
-                     likes: req.user.id,
+                     likes: req.user._id,
                   },
                }
             );
-            return res.status(200).json(req.user.id);
+            return res.status(200).json(req.user._id);
          }
       } catch (err) {
          res.status(500).json("Like failed");
@@ -166,7 +166,7 @@ const PostController = {
          const isExistedLike = await Post.findOne({
             _id: idPost,
             likes: {
-               $in: [req.user.id],
+               $in: [req.user._id],
             },
          });
          if (isExistedLike) {
@@ -176,13 +176,13 @@ const PostController = {
                },
                {
                   $pull: {
-                     likes: req.user.id,
+                     likes: req.user._id,
                   },
                }
             );
             res.status(200).json("Unlike successfully");
          } else {
-            res.status(400).json("Ever like");
+            res.status(401).json("Ever like");
          }
       } catch (err) {
          res.status(500).json("Unlike failed");

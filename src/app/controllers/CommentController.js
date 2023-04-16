@@ -21,7 +21,7 @@ const CommentController = {
          if (!!newComment && idPost) {
             const comment = new Comment({
                body: newComment,
-               user: req.user.id,
+               user: req.user._id,
                post: idPost,
             });
             const savedComment = await comment.save();
@@ -44,7 +44,7 @@ const CommentController = {
          const newComment = req.body.comment.trim();
          const idComment = req.params.idComment;
          const isAuthor = await Comment.findOne({
-            user: req.user.id,
+            user: req.user._id,
             _id: idComment,
          });
          if (isAuthor) {
@@ -73,12 +73,12 @@ const CommentController = {
          const idPost = req.params.id;
          const isAdmin = req.user.isAdmin;
          const author = await Comment.findOne({
-            user: req.user.id,
+            user: req.user._id,
             _id: idComment,
          });
          const authorOfPost = await Post.findOne({
             _id: idPost,
-            author: req.user.id,
+            author: req.user._id,
          });
 
          if (author || authorOfPost || isAdmin) {

@@ -5,7 +5,7 @@ const ConversationController = {
       try {
          const conversations = await Conversation.find({
             members: {
-               $in: [req.user.id],
+               $in: [req.user._id],
             },
          }).populate("members", {
             fullName: 1,
@@ -35,13 +35,13 @@ const ConversationController = {
       try {
          const existed = await Conversation.findOne({
             members: {
-               $all: [req.user.id, req.body.idFriend],
+               $all: [req.user._id, req.body.idFriend],
             },
          });
          if (!existed) {
-            if (req.user.id && req.body.idFriend) {
+            if (req.user._id && req.body.idFriend) {
                const newConversation = new Conversation({
-                  members: [req.user.id, req.body.idFriend],
+                  members: [req.user._id, req.body.idFriend],
                });
                const savedNewConversation = await newConversation.save();
                res.status(200).json(savedNewConversation);

@@ -1,6 +1,6 @@
 import express from "express";
 import PostController from "../app/controllers/PostController.js";
-import { VerifyTokenAndAuthorMiddleware, VerifyTokenMiddleware } from "../app/middlewares/index.js";
+import { VerifyTokenAndAuthorMiddleware } from "../app/middlewares/index.js";
 const router = express.Router();
 
 router.get("/search", PostController.search);

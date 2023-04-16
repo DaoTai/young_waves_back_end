@@ -9,12 +9,12 @@ const AuthController = {
    createAccessToken(user) {
       return jwt.sign(
          {
-            id: user._id,
+            _id: user._id,
             isAdmin: user.isAdmin,
          },
          process.env.JWT_ACCESS_TOKEN,
          {
-            expiresIn: "1d",
+            expiresIn: "30s",
          }
       );
    },
@@ -22,12 +22,12 @@ const AuthController = {
    createRefreshToken(user) {
       return jwt.sign(
          {
-            id: user._id,
+            _id: user._id,
             isAdmin: user.isAdmin,
          },
          process.env.JWT_REFRESH_TOKEN,
          {
-            expiresIn: "14d",
+            expiresIn: "30d",
          }
       );
    },
