@@ -14,7 +14,7 @@ const AuthController = {
          },
          process.env.JWT_ACCESS_TOKEN,
          {
-            expiresIn: "30s",
+            expiresIn: "1d",
          }
       );
    },

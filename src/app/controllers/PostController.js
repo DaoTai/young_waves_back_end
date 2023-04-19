@@ -56,8 +56,7 @@ const PostController = {
             .populate("author");
          res.status(200).json(posts);
       } catch (err) {
-         console.log("Error owner post: ", err);
-         res.status(500).json({ err, msg: "Get owner posts failed!" });
+         res.status(500).json("Get owner posts failed");
       }
    },
 

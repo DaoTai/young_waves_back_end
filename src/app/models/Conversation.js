@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const conversationSchame = new mongoose.Schema(
+const conversationSchema = new mongoose.Schema(
    {
       members: [{ type: mongoose.Types.ObjectId, ref: "user" }],
    },
@@ -8,5 +8,5 @@ const conversationSchame = new mongoose.Schema(
    }
 );
 
-const ConversationModel = mongoose.model("conversation", conversationSchame);
+const ConversationModel = mongoose.model("conversation", conversationSchema);
 export default ConversationModel;

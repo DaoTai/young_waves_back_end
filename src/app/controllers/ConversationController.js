@@ -1,17 +1,55 @@
 import { Conversation, Message } from "../models/index.js";
+import mongoose from "mongoose";
 const ConversationController = {
    // [GET] conversations/
    async getUserConversations(req, res) {
       try {
-         const conversations = await Conversation.find({
-            members: {
-               $in: [req.user._id],
+         const regex = new RegExp(req.query?.friendName, "i");
+         const perPage = 3;
+         const page = req.query.page || 1;
+         const userId = mongoose.Types.ObjectId(req.user._id);
+         // Main conditions to query
+         const mainConditions = [
+            {
+               $match: {
+                  members: {
+                     $in: [userId],
+                  },
+               },
             },
-         }).populate("members", {
-            fullName: 1,
-            avatar: 1,
+            {
+               $lookup: {
+                  from: "users",
+                  localField: "members",
+                  foreignField: "_id",
+                  as: "members",
+               },
+            },
+            {
+               $match: {
+                  "members.fullName": {
+                     $regex: regex,
+                  },
+               },
+            },
+         ];
+
+         // Pagination
+         const conversations = await Conversation.aggregate([
+            ...mainConditions,
+            {
+               $skip: perPage * page - perPage,
+            },
+            {
+               $limit: perPage,
+            },
+         ]);
+         const totalConversations = (await Conversation.aggregate([...mainConditions])).length;
+         return res.status(200).json({
+            conversations,
+            currentPage: +page,
+            maxPage: Math.ceil(totalConversations / perPage),
          });
-         res.status(200).send(conversations);
       } catch (err) {
          res.status(500).json(err);
       }
