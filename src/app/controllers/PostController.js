@@ -3,8 +3,20 @@ const PostController = {
    // [GET] posts/
    async show(req, res) {
       try {
-         const posts = await Post.find({}).sort({ createdAt: -1 }).populate("author");
+         const perPage = 5;
+         const page = req.query.page || 1;
+         const posts = await Post.find()
+            .sort({ createdAt: -1 })
+            .skip(perPage * page - perPage)
+            .limit(perPage)
+            .populate("author");
+         const total = await Post.find().countDocuments();
          res.status(200).json(posts);
+         // res.status(200).json({
+         //    posts,
+         //    currentPage: +page,
+         //    maxPage: Math.ceil(total / perPage),
+         // });
       } catch (err) {
          console.log(err);
          res.status(500).json({ err, msg: "Show posts failed!" });

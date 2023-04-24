@@ -1,36 +1,11 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { createTransport } from "nodemailer";
 import User from "../models/User.js";
-
+import { createAccessToken, createRefreshToken } from "../../utils/token.js";
 const AuthController = {
    // Store refresh token
    refreshTokens: [],
-   // Create access token
-   createAccessToken(user) {
-      return jwt.sign(
-         {
-            _id: user._id,
-            isAdmin: user.isAdmin,
-         },
-         process.env.JWT_ACCESS_TOKEN,
-         {
-            expiresIn: "1d",
-         }
-      );
-   },
-   // Create refresh token
-   createRefreshToken(user) {
-      return jwt.sign(
-         {
-            _id: user._id,
-            isAdmin: user.isAdmin,
-         },
-         process.env.JWT_REFRESH_TOKEN,
-         {
-            expiresIn: "30d",
-         }
-      );
-   },
    // [POST] auth/register
    async register(req, res) {
       console.log("body: ", req.body);
@@ -92,8 +67,8 @@ const AuthController = {
          const validPassword = await bcrypt.compare(req.body.password, user.password);
          if (!validPassword) return res.status(404).json("Wrong password");
          if (user && validPassword) {
-            const accessToken = AuthController.createAccessToken(user);
-            const refreshToken = AuthController.createRefreshToken(user);
+            const accessToken = createAccessToken(user);
+            const refreshToken = createRefreshToken(user);
             AuthController.refreshTokens.push(refreshToken);
             const { password, ...payload } = user._doc;
             res.cookie("refreshToken", refreshToken, {
@@ -109,6 +84,16 @@ const AuthController = {
          }
       } catch (err) {
          res.status(500).json(err);
+      }
+   },
+
+   // [POST] auth/logout
+   async logout(req, res) {
+      try {
+         res.clearCookie("refreshToken");
+         res.status(200).json("Log out successfully");
+      } catch (err) {
+         console.log(err);
       }
    },
    // Chức năng của refresh token: như 1 phiếu chứng nhận rằng tôi có quyền được cấp 1 access token mới lần nữa
@@ -130,8 +115,8 @@ const AuthController = {
             (token) => token !== refreshToken
          );
          // Create new access token & refresh token
-         const newAccessToken = AuthController.createAccessToken(decodeToken);
-         const newRefreshToken = AuthController.createRefreshToken(decodeToken);
+         const newAccessToken = createAccessToken(decodeToken);
+         const newRefreshToken = createRefreshToken(decodeToken);
          AuthController.refreshTokens.push(newRefreshToken);
          res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
@@ -146,14 +131,48 @@ const AuthController = {
       }
    },
 
-   // [POST] auth/logout
-   async logout(req, res) {
-      try {
-         res.clearCookie("refreshToken");
-         res.status(200).json("Log out successfully");
-      } catch (err) {
-         console.log(err);
-      }
+   // [POST] auth/forgot-password
+   async forgotPassword(req, res) {
+      const user = await User.findOne({
+         username: req.body.username,
+      });
+      if (!user) return res.status(404).json("Wrong username");
+      if (user.email !== req.body.email) return res.status(404).json("Wrong email");
+      const newPassword = String(Math.floor(100000000 + Math.random() * 900000000));
+      const transporter = createTransport({
+         service: "gmail",
+         auth: {
+            user: process.env.GMAIL_USER,
+            pass: process.env.GMAIL_PASSWORD,
+         },
+      });
+
+      const mailOptions = {
+         from: process.env.GMAIL_USER,
+         to: user.email,
+         subject: "Yong Waves #New password", // Subject line
+         html: `
+         <h3>Hi, ${user.fullName} </h3>
+         <p>
+            New password: <b> ${newPassword} </b>
+         </p>
+         <i> You need to change your password when login with this password </i>
+         `,
+      };
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(newPassword, salt);
+      transporter.sendMail(mailOptions, async (err, data) => {
+         if (err) {
+            res.status(401).json("Send new password failed");
+            throw new Error(err);
+         } else {
+            // Update password
+            await User.findByIdAndUpdate(user._id, {
+               password: hashedPassword,
+            });
+            res.status(200).json("Send new password successfully");
+         }
+      });
    },
 };
 
