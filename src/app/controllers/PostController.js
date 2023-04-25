@@ -11,12 +11,11 @@ const PostController = {
             .limit(perPage)
             .populate("author");
          const total = await Post.find().countDocuments();
-         res.status(200).json(posts);
-         // res.status(200).json({
-         //    posts,
-         //    currentPage: +page,
-         //    maxPage: Math.ceil(total / perPage),
-         // });
+         res.status(200).json({
+            posts,
+            currentPage: +page,
+            maxPage: Math.ceil(total / perPage),
+         });
       } catch (err) {
          console.log(err);
          res.status(500).json({ err, msg: "Show posts failed!" });
@@ -61,12 +60,24 @@ const PostController = {
    // [GET] posts/owner/:id
    async ownerPosts(req, res, next) {
       try {
+         const perPage = 5;
+         const page = req.query.page || 1;
          const posts = await Post.find({
             author: req.params.id,
          })
             .sort({ createdAt: -1 })
+            .skip(perPage * page - perPage)
+            .limit(perPage)
             .populate("author");
-         res.status(200).json(posts);
+         // Total
+         const total = await Post.find({
+            author: req.params.id,
+         }).countDocuments();
+         res.status(200).json({
+            posts,
+            currentPage: +page,
+            maxPage: Math.ceil(total / perPage),
+         });
       } catch (err) {
          res.status(500).json("Get owner posts failed");
       }
