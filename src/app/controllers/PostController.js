@@ -40,17 +40,32 @@ const PostController = {
    // [GET] posts/:id
    async detail(req, res) {
       try {
+         const perPage = 5;
+         const page = req.query.pageComment || 1;
          const post = await Post.findById(req.params.id).populate("author").populate("likes");
          const comments = await Comment.find({
             _id: { $in: post.comments },
          })
+            .skip(page * perPage - perPage)
+            .limit(perPage)
             .sort({ createdAt: -1 })
             .populate("user", {
                fullName: 1,
                avatar: 1,
                isAdmin: 1,
             });
-         res.status(200).json({ post, comments });
+
+         const totalComments = await Comment.find({
+            _id: { $in: post.comments },
+         }).countDocuments();
+         res.status(200).json({
+            post,
+            comments: {
+               data: comments,
+               currentPage: +page,
+               maxPage: Math.ceil(totalComments / perPage),
+            },
+         });
       } catch (err) {
          console.log(err);
          res.status(500).json({ err, msg: "Get detail post failed!" });
@@ -95,6 +110,7 @@ const PostController = {
          });
          res.status(200).json(newPost);
       } catch (err) {
+         console.log("Error: ", err);
          res.status(500).json({ err, msg: "Create post failed!" });
       }
    },
