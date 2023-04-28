@@ -38,14 +38,27 @@ const AdminController = {
 
    // [DELETE] admin/users/:id
    async deleteUser(req, res) {
+      const userId = req.params.id;
+      const comments = await Comment.find({ user: userId }).select("_id");
+      const commentIds = comments.map((comment) => comment._id);
       try {
-         await User.deleteById(req.params.id);
+         await User.deleteById(userId);
+         await Post.updateMany(
+            {},
+            {
+               $pull: {
+                  likes: userId,
+                  comments: { $in: commentIds },
+               },
+            }
+         );
          await Post.delete({
-            author: req.params.id,
+            author: userId,
          });
          await Comment.delete({
-            user: req.params.id,
+            user: userId,
          });
+
          res.status(200).json("Deleted successfully!");
       } catch (err) {
          res.status(500).json("Deleted failed!");
@@ -54,10 +67,26 @@ const AdminController = {
 
    // [PATCH] admin/users/:id/restore
    async restoreUser(req, res) {
+      const userId = req.params.id;
       try {
-         await User.restore({ _id: req.params.id });
-         await Post.restore({ author: req.params.id });
-         await Comment.restore({ user: req.params.id });
+         const comments = await Comment.findDeleted({ user: userId });
+         // Reupdate liked & commented posts
+         comments.forEach(async (comment) => {
+            await Post.updateMany(
+               { _id: comment.post },
+               {
+                  $push: {
+                     likes: userId,
+                     comments: comment._id,
+                  },
+               }
+            );
+         });
+
+         await User.restore({ _id: userId });
+         await Post.restore({ author: userId });
+         await Comment.restore({ user: userId });
+
          res.status(200).json("Restored successfully!");
       } catch (err) {
          res.status(500).json("Restore failed!");
@@ -66,10 +95,22 @@ const AdminController = {
 
    // [DELETE] admin/users/:id/force-delete
    async forceDeleteUser(req, res) {
+      const userId = req.params.id;
       try {
-         await User.findByIdAndDelete(req.params.id);
-         await Post.deleteMany({ author: req.params.id });
-         await Comment.deleteMany({ user: req.params.id });
+         const comments = await Comment.findDeleted({ user: userId }).select("_id");
+         const commentIds = comments.map((comment) => comment._id);
+         await User.findByIdAndDelete(userId);
+         await Post.deleteMany({ author: userId });
+         await Post.updateManyWithDeleted(
+            {},
+            {
+               $pull: {
+                  likes: { $in: [userId] },
+                  comments: { $in: commentIds },
+               },
+            }
+         );
+         await Comment.deleteMany({ user: userId });
          res.status(200).json("Force delete successfully!");
       } catch (err) {
          res.status(500).json("Force deletion failed");

@@ -8,7 +8,6 @@ const AuthController = {
    refreshTokens: [],
    // [POST] auth/register
    async register(req, res) {
-      console.log("body: ", req.body);
       try {
          const {
             username,
@@ -55,7 +54,6 @@ const AuthController = {
          const user = await newUser.save();
          res.status(200).json(user);
       } catch (err) {
-         console.log(err);
          res.status(500).json(err);
       }
    },

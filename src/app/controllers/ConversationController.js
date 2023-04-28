@@ -5,7 +5,7 @@ const ConversationController = {
    async getUserConversations(req, res) {
       try {
          const regex = new RegExp(req.query?.friendName, "i");
-         const perPage = 3;
+         const perPage = 6;
          const page = req.query.page || 1;
          const userId = mongoose.Types.ObjectId(req.user._id);
          // Main conditions to query
