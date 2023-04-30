@@ -58,11 +58,24 @@ const ConversationController = {
    // [GET] conversations/:id
    async getDetailConversation(req, res) {
       try {
+         const perPage = 15;
+         const page = req.query.page || 1;
          const idConversation = req.params.id;
          const messages = await Message.find({
             idConversation: idConversation,
+         })
+            .sort({ createdAt: -1 })
+            .skip(perPage * page - perPage)
+            .limit(perPage);
+         // Total
+         const totalMsg = await Message.find({
+            idConversation: idConversation,
+         }).countDocuments();
+         res.status(200).json({
+            messages,
+            currentPage: +page,
+            maxPage: Math.ceil(totalMsg / perPage),
          });
-         res.status(200).json(messages);
       } catch (err) {
          res.status(500).json(err);
       }
