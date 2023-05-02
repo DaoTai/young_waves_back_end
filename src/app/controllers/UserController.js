@@ -84,8 +84,6 @@ const UserController = {
       try {
          const perPage = 6;
          const page = req.query.page || 1;
-         let friends = [];
-         let maxPage = 0;
          const searchValue = new RegExp(req.query.searchValue, "i");
          const displayedData = {
             _id: 1,
@@ -94,35 +92,19 @@ const UserController = {
          };
          // Get user's list id friends
          const user = await User.findById(req.params.id, { friends: 1 });
-         if (req.query.searchValue) {
-            const conditionFind = [
-               {
-                  _id: {
-                     $in: user.friends,
-                  },
-                  fullName: { $regex: searchValue },
+         const conditionFind = [
+            {
+               _id: {
+                  $in: user.friends,
                },
-               displayedData,
-            ];
-            friends = await User.find(...conditionFind)
-               .skip(perPage * page - perPage)
-               .limit(perPage);
-            const count = await User.find(...conditionFind).countDocuments();
-            maxPage = Math.ceil(count / perPage);
-         } else {
-            // Get information of users
-            friends = await User.find(
-               {
-                  _id: {
-                     $in: user.friends,
-                  },
-               },
-               displayedData
-            )
-               .skip(perPage * page - perPage)
-               .limit(perPage);
-            maxPage = Math.ceil(user.friends.length / perPage);
-         }
+               fullName: { $regex: searchValue },
+            },
+         ];
+         const friends = await User.find(...conditionFind, displayedData)
+            .skip(perPage * page - perPage)
+            .limit(perPage);
+         const count = await User.find(...conditionFind).countDocuments();
+         const maxPage = Math.ceil(count / perPage);
 
          res.status(200).json({ friends, maxPage });
       } catch (err) {

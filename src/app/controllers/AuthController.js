@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { createTransport } from "nodemailer";
 import User from "../models/User.js";
+import Post from "../models/Post.js";
 import { createAccessToken, createRefreshToken } from "../../utils/token.js";
 const AuthController = {
    // Store refresh token
@@ -68,6 +69,7 @@ const AuthController = {
             const accessToken = createAccessToken(user);
             const refreshToken = createRefreshToken(user);
             AuthController.refreshTokens.push(refreshToken);
+            const totalPosts = await Post.find({ author: user._id }).countDocuments();
             const { password, ...payload } = user._doc;
             res.cookie("refreshToken", refreshToken, {
                httpOnly: true,
@@ -76,7 +78,7 @@ const AuthController = {
                sameSite: "strict",
             });
             return res.status(200).json({
-               user: payload,
+               user: { ...payload, totalPosts },
                accessToken,
             });
          }
