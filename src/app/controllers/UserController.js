@@ -105,7 +105,6 @@ const UserController = {
             .limit(perPage);
          const count = await User.find(...conditionFind).countDocuments();
          const maxPage = Math.ceil(count / perPage);
-
          res.status(200).json({ friends, maxPage });
       } catch (err) {
          res.status(500).json("Get friends failed");

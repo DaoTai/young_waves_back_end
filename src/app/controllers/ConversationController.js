@@ -25,6 +25,22 @@ const ConversationController = {
                   as: "members",
                },
             },
+
+            {
+               $lookup: {
+                  from: "messages",
+                  localField: "lastestMessage",
+                  foreignField: "_id",
+                  as: "lastestMessage",
+               },
+            },
+            // $lookup luôn trả về 1 array
+            // trong trường hợp chỉ có 1 array => trả về 1 Object với $addFields và $arrayElemAt
+            {
+               $addFields: {
+                  lastestMessage: { $arrayElemAt: ["$lastestMessage", 0] },
+               },
+            },
             {
                $match: {
                   "members.fullName": {

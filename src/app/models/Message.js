@@ -6,9 +6,15 @@ const messageSchema = new mongoose.Schema(
          type: mongoose.Types.ObjectId,
          ref: "user",
       },
-      text: {
+      content: {
          type: String,
       },
+      type: {
+         type: String,
+         default: "text",
+         enum: ["text", "image", "video"],
+      },
+      attachments: [{ type: String }],
    },
    {
       timestamps: true,
