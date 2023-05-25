@@ -107,17 +107,19 @@ const AuthController = {
          const refreshToken = req.cookies.refreshToken;
          if (!refreshToken) return res.status(401).json("You're not authenticated");
          // Check this refresh token existed
-         if (!AuthController.refreshTokens.includes(refreshToken))
-            return res.status(401).json("Refresh token is invalid");
+         // Không nên dùng 1 biến lưu trữ các refreshToken vì khi relaunch lại server sẽ mất hết đi
+         // Giải pháp => Sử dụng Redis?
+         // if (!AuthController.refreshTokens.includes(refreshToken))
+         //    return res.status(401).json("Refresh token is invalid");
          const decodeToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_TOKEN);
          // Remove this old refresh token
-         AuthController.refreshTokens = AuthController.refreshTokens.filter(
-            (token) => token !== refreshToken
-         );
+         // AuthController.refreshTokens = AuthController.refreshTokens.filter(
+         //    (token) => token !== refreshToken
+         // );
          // Create new access token & refresh token
          const newAccessToken = createAccessToken(decodeToken);
          const newRefreshToken = createRefreshToken(decodeToken);
-         AuthController.refreshTokens.push(newRefreshToken);
+         // AuthController.refreshTokens.push(newRefreshToken);
          res.cookie("refreshToken", newRefreshToken, {
             httpOnly: true,
             secure: false,

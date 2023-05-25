@@ -23,6 +23,16 @@ const MessageController = {
          res.status(500).json(err);
       }
    },
+
+   // [DELETE] message/
+   async deleteMessage(req, res) {
+      try {
+         const result = await Message.findByIdAndDelete(req.params.id);
+         res.status(200).json("Delete successfully!");
+      } catch (err) {
+         res.status(500).json(err);
+      }
+   },
 };
 
 export default MessageController;

@@ -231,12 +231,20 @@ const PostController = {
       try {
          const { status, body, attachments } = req.body;
          if (body.trim()) {
-            await Post.findByIdAndUpdate(req.params.id, {
-               body,
-               status,
-               attachments,
+            const post = await Post.findByIdAndUpdate(
+               req.params.id,
+               {
+                  body,
+                  status,
+                  attachments,
+               },
+               { new: true }
+            ).populate("author", {
+               _id: 1,
+               fullName: 1,
+               avatar: 1,
             });
-            res.status(200).json({ msg: "Edited successfully!" });
+            res.status(200).json(post);
          } else {
             throw new Error({ msg: "Invalid content!" });
          }
@@ -269,8 +277,8 @@ const PostController = {
    // [DELETE] posts/:id/force-delete
    async forceDelete(req, res) {
       try {
-         await Post.findByIdAndDelete(req.params.id);
-         res.status(200).json({ msg: "Delete post successfully!" });
+         const post = await Post.findByIdAndDelete(req.params.id);
+         res.status(200).json(post);
       } catch (err) {
          res.status(500).json({ err, msg: "Delete post failed!" });
       }

@@ -6,12 +6,14 @@ const verifyToken = (req, res, next) => {
       // format token in headers: Bearer 1224a...
       const accessToken = token.split(" ")[1];
       jwt.verify(accessToken, process.env.JWT_ACCESS_TOKEN, (err, data) => {
-         err && res.status(403).json({ msg: "Token is not valid" });
+         if (err) {
+            return res.status(403).json({ msg: "Token is not valid" });
+         }
          req.user = data;
          next();
       });
    } else {
-      res.status(401).json({ msg: "You're not authenticated" });
+      return res.status(401).json({ msg: "You're not authenticated" });
    }
 };
 
