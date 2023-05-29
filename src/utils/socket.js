@@ -1,5 +1,5 @@
 // Chatting socket
-export const chattingSocket = (socketIo) => {
+export const socket = (socketIo) => {
    let users = [];
    const addUser = (idUser, idConversation, idSocket) => {
       !users.some((user) => user.idUser === idUser && user.idConversation === idConversation) &&
@@ -16,20 +16,25 @@ export const chattingSocket = (socketIo) => {
 
    socketIo.on("connection", (socket) => {
       // Connected
-
+      // emit event to update client-side list of online users
+      socketIo.to(socket.id).emit("getOnlineUsers", users);
       // Add user to socket
       socket.on("addUser", (idUser, idConversation) => {
          addUser(idUser, idConversation, socket.id);
       });
 
       //send message
-      socket.on("sendMessage", function ({ idSender, idConversation, idReceiver, text }) {
-         const user = getUser(idReceiver, idConversation);
-         socketIo.to(user?.idSocket).emit("getMessage", {
-            idSender,
-            text,
-         });
-      });
+      socket.on(
+         "sendMessage",
+         function ({ idSender, idConversation, idReceiver, text, attachments }) {
+            const user = getUser(idReceiver, idConversation);
+            socketIo.to(user?.idSocket).emit("getMessage", {
+               idSender,
+               text,
+               attachments,
+            });
+         }
+      );
 
       // When disconnect
       socket.on("disconnect", () => {

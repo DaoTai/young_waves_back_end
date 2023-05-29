@@ -1,4 +1,5 @@
-import { User, Post, Comment } from "../models/index.js";
+import mongoose from "mongoose";
+import { User, Post, Comment, Conversation } from "../models/index.js";
 const AdminController = {
    // [PATCH] admin/authorization/:id
    async authorize(req, res) {
@@ -58,7 +59,7 @@ const AdminController = {
          await Comment.delete({
             user: userId,
          });
-
+         await Conversation.delete({ members: { $in: [userId] } });
          res.status(200).json("Deleted successfully!");
       } catch (err) {
          res.status(500).json("Deleted failed!");
@@ -86,7 +87,7 @@ const AdminController = {
          await User.restore({ _id: userId });
          await Post.restore({ author: userId });
          await Comment.restore({ user: userId });
-
+         await Conversation.restore({ members: { $in: userId } });
          res.status(200).json("Restored successfully!");
       } catch (err) {
          res.status(500).json("Restore failed!");
@@ -99,7 +100,12 @@ const AdminController = {
       try {
          const comments = await Comment.findDeleted({ user: userId }).select("_id");
          const commentIds = comments.map((comment) => comment._id);
-         await User.findByIdAndDelete(userId);
+         const user = await User.findByIdAndDelete(userId);
+         // Get attachments of post
+         const attachmentsOfPost = await Post.findDeleted({
+            author: mongoose.Types.ObjectId(userId),
+         }).distinct("attachments");
+         const deletedAttachments = [...attachmentsOfPost, user.avatar, user.coverPicture];
          await Post.deleteMany({ author: userId });
          await Post.updateManyWithDeleted(
             {},
@@ -111,7 +117,8 @@ const AdminController = {
             }
          );
          await Comment.deleteMany({ user: userId });
-         res.status(200).json("Force delete successfully!");
+         await Conversation.deleteMany({ members: { $in: [userId] } });
+         res.status(200).json({ deletedAttachments });
       } catch (err) {
          res.status(500).json("Force deletion failed");
       }

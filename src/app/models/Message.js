@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const attachmentSchema = new mongoose.Schema({
-   type: { type: String, default: "image", enum: ["image", "video"] },
+   type: { type: String, default: "image", enum: ["image"] },
    url: { type: String, required: true },
 });
 
@@ -12,13 +12,8 @@ const messageSchema = new mongoose.Schema(
          type: mongoose.Types.ObjectId,
          ref: "user",
       },
-      content: {
+      text: {
          type: String,
-      },
-      type: {
-         type: String,
-         default: "text",
-         enum: ["text", "image", "video"],
       },
       attachments: [attachmentSchema],
    },

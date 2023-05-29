@@ -59,7 +59,7 @@ const ConversationController = {
             {
                $limit: perPage,
             },
-         ]);
+         ]).sort({ updatedAt: -1 });
          const totalConversations = (await Conversation.aggregate([...mainConditions])).length;
          return res.status(200).json({
             conversations,

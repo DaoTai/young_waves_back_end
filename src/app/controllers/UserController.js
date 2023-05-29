@@ -46,8 +46,9 @@ const UserController = {
    // [PATCH] /user/:id
    async editUser(req, res) {
       try {
-         await User.findByIdAndUpdate(req.params.id, req.body);
-         const user = await User.findById(req.params.id);
+         const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+            new: true,
+         });
          res.status(200).json(user);
       } catch (err) {
          res.status(500).json("Edited failed");
