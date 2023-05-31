@@ -11,4 +11,5 @@ router.patch("/users/:id", UserController.editUser);
 router.patch("/users/:id/restore", AdminController.restoreUser);
 router.delete("/users/:id", AdminController.deleteUser);
 router.delete("/users/:id/force-delete", AdminController.forceDeleteUser);
+router.post("/users/handle-all", AdminController.handleAll);
 export default router;

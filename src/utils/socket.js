@@ -1,6 +1,11 @@
 // Chatting socket
 export const socket = (socketIo) => {
+   let onlineUsers = [];
    let users = [];
+
+   //
+
+   // Chat
    const addUser = (idUser, idConversation, idSocket) => {
       !users.some((user) => user.idUser === idUser && user.idConversation === idConversation) &&
          users.push({ idUser, idConversation, idSocket });
