@@ -1,4 +1,5 @@
 import { Post, Comment, User } from "../models/index.js";
+import { storageAttachments, deleleteAttachments } from "../../utils/firebase.js";
 const PostController = {
    // [GET] posts/
    async show(req, res) {
@@ -101,7 +102,13 @@ const PostController = {
    // [POST] posts/
    async create(req, res) {
       try {
-         const newPost = new Post({ ...req.body, author: req.user._id });
+         const downloadURLs = await storageAttachments(req.files);
+         const data = {
+            ...req.body,
+            author: req.user._id,
+            attachments: downloadURLs,
+         };
+         const newPost = new Post(data);
          await newPost.save();
          await newPost.populate("author", {
             _id: 1,
@@ -229,22 +236,35 @@ const PostController = {
    // [PUT] posts/:id
    async edit(req, res) {
       try {
-         const { status, body, attachments } = req.body;
+         const { status, body, deletedAttachments } = req.body;
+         const idPost = req.params.id;
          if (body.trim()) {
-            const post = await Post.findByIdAndUpdate(
-               req.params.id,
-               {
+            const downloadURLs = await storageAttachments(req.files);
+            const updatedPost = await Promise.all([
+               Post.findByIdAndUpdate(idPost, {
                   body,
                   status,
-                  attachments,
-               },
-               { new: true }
-            ).populate("author", {
-               _id: 1,
-               fullName: 1,
-               avatar: 1,
-            });
-            res.status(200).json(post);
+                  $push: {
+                     attachments: { $each: downloadURLs },
+                  },
+               }),
+               Post.findByIdAndUpdate(
+                  idPost,
+                  {
+                     $pullAll: {
+                        attachments: deletedAttachments,
+                     },
+                  },
+                  { new: true }
+               ).populate("author", {
+                  _id: 1,
+                  fullName: 1,
+                  avatar: 1,
+               }),
+            ]);
+            deletedAttachments && (await deleleteAttachments(deletedAttachments));
+            const finalPost = updatedPost[updatedPost.length - 1];
+            res.status(200).json(finalPost);
          } else {
             throw new Error({ msg: "Invalid content!" });
          }
@@ -278,6 +298,7 @@ const PostController = {
    async forceDelete(req, res) {
       try {
          const post = await Post.findByIdAndDelete(req.params.id);
+         post.attachments && (await deleleteAttachments(post.attachments));
          res.status(200).json(post);
       } catch (err) {
          res.status(500).json({ err, msg: "Delete post failed!" });
