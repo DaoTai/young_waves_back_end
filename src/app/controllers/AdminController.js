@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { User, Post, Comment, Conversation, Message } from "../models/index.js";
+import { deleteAttachments } from "../../utils/firebase.js";
 const AdminController = {
    // [PATCH] admin/authorization/:id
    async authorize(req, res) {
@@ -40,26 +41,28 @@ const AdminController = {
    // [DELETE] admin/users/:id
    async deleteUser(req, res) {
       const userId = req.params.id;
-      const comments = await Comment.find({ user: userId }).select("_id");
-      const commentIds = comments.map((comment) => comment._id);
       try {
-         await User.deleteById(userId);
-         await Post.updateMany(
-            {},
-            {
-               $pull: {
-                  likes: userId,
-                  comments: { $in: commentIds },
-               },
-            }
-         );
-         await Post.delete({
-            author: userId,
-         });
-         await Comment.delete({
-            user: userId,
-         });
-         await Conversation.delete({ members: { $in: [userId] } });
+         const comments = await Comment.find({ user: userId }).select("_id");
+         const commentIds = comments.map((comment) => comment._id);
+         await Promise.all([
+            User.deleteById(userId),
+            Post.updateMany(
+               {},
+               {
+                  $pull: {
+                     likes: userId,
+                     comments: { $in: commentIds },
+                  },
+               }
+            ),
+            Post.delete({
+               author: userId,
+            }),
+            Comment.delete({
+               user: userId,
+            }),
+            Conversation.delete({ members: { $in: [userId] } }),
+         ]);
          res.status(200).json("Deleted successfully!");
       } catch (err) {
          res.status(500).json("Deleted failed!");
@@ -115,26 +118,23 @@ const AdminController = {
             idConversation: { $in: deletedConversationsIds },
          }).distinct("attachments.url");
 
-         const deletedAttachments = [
-            ...attachmentsOfPost,
-            ...attachmentsOfMessages,
-            user.avatar,
-            user.coverPicture,
-         ];
-         await Post.updateManyWithDeleted(
-            {},
-            {
-               $pull: {
-                  likes: { $in: [userId] },
-                  comments: { $in: commentIds },
-               },
-            }
-         );
-         await Post.deleteMany({ author: userId });
-         await Comment.deleteMany({ user: userId });
-         await Conversation.deleteMany({ members: { $in: [userId] } });
-         await Message.deleteMany({ idConversation: { $in: deletedConversationsIds } });
-         console.log("deletedAttachments: ", deletedAttachments);
+         const deletedAttachments = [...attachmentsOfPost, ...attachmentsOfMessages, user.avatar, user.coverPicture];
+         await Promise.all([
+            Post.updateManyWithDeleted(
+               {},
+               {
+                  $pull: {
+                     likes: { $in: [userId] },
+                     comments: { $in: commentIds },
+                  },
+               }
+            ),
+            Post.deleteMany({ author: userId }),
+            Comment.deleteMany({ user: userId }),
+            Conversation.deleteMany({ members: { $in: [userId] } }),
+            Message.deleteMany({ idConversation: { $in: deletedConversationsIds } }),
+            deleteAttachments(deletedAttachments),
+         ]);
          res.status(200).json({ deletedAttachments });
       } catch (err) {
          res.status(500).json("Force deletion failed");
@@ -154,23 +154,25 @@ const AdminController = {
             }).select("_id");
             const commentIds = comments.map((comment) => comment._id);
             try {
-               await User.delete({ _id: { $in: memberIds } });
-               await Post.updateMany(
-                  {},
-                  {
-                     $pull: {
-                        likes: { $in: memberIds },
-                        comments: { $in: commentIds },
-                     },
-                  }
-               );
-               await Post.delete({
-                  author: { $in: memberIds },
-               });
-               await Comment.delete({
-                  user: { $in: memberIds },
-               });
-               await Conversation.delete({ members: { $in: memberIds } });
+               await Promise.all([
+                  User.delete({ _id: { $in: memberIds } }),
+                  Post.updateMany(
+                     {},
+                     {
+                        $pull: {
+                           likes: { $in: memberIds },
+                           comments: { $in: commentIds },
+                        },
+                     }
+                  ),
+                  Post.delete({
+                     author: { $in: memberIds },
+                  }),
+                  Comment.delete({
+                     user: { $in: memberIds },
+                  }),
+                  Conversation.delete({ members: { $in: memberIds } }),
+               ]);
                return res.status(200).json("Deleted successfully!");
             } catch (err) {
                res.status(500).json("Deleted failed!");
@@ -204,10 +206,12 @@ const AdminController = {
                      );
                   }
                }
-               await User.restore({ _id: { $in: memberIds } });
-               await Post.restore({ author: { $in: memberIds } });
-               await Comment.restore({ user: { $in: memberIds } });
-               await Conversation.restore({ members: { $in: memberIds } });
+               await Promise.all([
+                  User.restore({ _id: { $in: memberIds } }),
+                  Post.restore({ author: { $in: memberIds } }),
+                  Comment.restore({ user: { $in: memberIds } }),
+                  Conversation.restore({ members: { $in: memberIds } }),
+               ]);
                return res.status(200).json("Restored successfully!");
             } catch (err) {
                res.status(500).json("Restore failed!");
@@ -252,25 +256,24 @@ const AdminController = {
                }).distinct("attachments.url");
 
                // Update & delete
-               await Post.updateManyWithDeleted(
-                  {},
-                  {
-                     $pullAll: {
-                        likes: memberIds,
-                        comments: deletedCommentsIds,
-                     },
-                  }
-               );
-               await Message.deleteMany({ idConversation: { $in: deletedConversationsIds } });
-               await User.deleteMany({ _id: { $in: memberIds } });
-               await Post.deleteMany({ author: { $in: memberIds } });
-               await Comment.deleteMany({ user: { $in: memberIds } });
-               await Conversation.deleteMany({ members: { $in: memberIds } });
-
-               deletedAttachments = deletedAttachments.concat(
-                  attachmentsOfPosts,
-                  attachmentsOfMessages
-               );
+               deletedAttachments = deletedAttachments.concat(attachmentsOfPosts, attachmentsOfMessages);
+               await Promise.all([
+                  Post.updateManyWithDeleted(
+                     {},
+                     {
+                        $pullAll: {
+                           likes: memberIds,
+                           comments: deletedCommentsIds,
+                        },
+                     }
+                  ),
+                  Message.deleteMany({ idConversation: { $in: deletedConversationsIds } }),
+                  User.deleteMany({ _id: { $in: memberIds } }),
+                  Post.deleteMany({ author: { $in: memberIds } }),
+                  Comment.deleteMany({ user: { $in: memberIds } }),
+                  Conversation.deleteMany({ members: { $in: memberIds } }),
+                  deleteAttachments(deletedAttachments),
+               ]);
                return res.status(200).json({ deletedAttachments });
             } catch (err) {
                console.error(err);

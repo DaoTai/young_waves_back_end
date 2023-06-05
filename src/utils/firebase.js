@@ -1,10 +1,4 @@
-import {
-   getStorage,
-   ref,
-   getDownloadURL,
-   uploadBytesResumable,
-   deleteObject,
-} from "firebase/storage";
+import { getStorage, ref, getDownloadURL, uploadBytesResumable, deleteObject } from "firebase/storage";
 import firebase from "../config/firebase/config.js";
 const storage = firebase.storage();
 
@@ -27,6 +21,7 @@ export const storageAttachments = async (files) => {
    const urls = [];
    // Ko sử dụng forEach để xử lý bất đồng bộ được
    for (const file of files) {
+      console.log("file: ", file);
       // Upload to firebase cloud
       const downloadUrl = await storageAttachment(file);
       urls.push(downloadUrl);
@@ -35,23 +30,23 @@ export const storageAttachments = async (files) => {
 };
 
 // Xoá một ảnh trên Firebase Storage
-export const deleleteAttachment = async (url) => {
-   const storage = getStorage();
-
-   // Create a reference to the file to delete
-   const desertRef = ref(storage, url);
-   // Delete the file
-
-   try {
-      await deleteObject(desertRef);
-   } catch (err) {
-      console.log("Error ", err);
+export const deleteAttachment = async (url) => {
+   if (url) {
+      const storage = getStorage();
+      // Create a reference to the file to delete
+      const desertRef = ref(storage, url);
+      // Delete the file
+      try {
+         await deleteObject(desertRef);
+      } catch (err) {
+         console.log("Delete error: ", err);
+      }
    }
 };
 
 // Xoá nhiều ảnh trên Firebase Storage
-export const deleleteAttachments = async (urls) => {
+export const deleteAttachments = async (urls) => {
    for (const url of urls) {
-      await deleleteAttachment(url);
+      await deleteAttachment(url);
    }
 };

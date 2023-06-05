@@ -1,5 +1,5 @@
 import { Post, Comment, User } from "../models/index.js";
-import { storageAttachments, deleleteAttachments } from "../../utils/firebase.js";
+import { storageAttachments, deleteAttachments } from "../../utils/firebase.js";
 const PostController = {
    // [GET] posts/
    async show(req, res) {
@@ -117,7 +117,6 @@ const PostController = {
          });
          res.status(200).json(newPost);
       } catch (err) {
-         console.log("Error: ", err);
          res.status(500).json({ err, msg: "Create post failed!" });
       }
    },
@@ -262,7 +261,7 @@ const PostController = {
                   avatar: 1,
                }),
             ]);
-            deletedAttachments && (await deleleteAttachments(deletedAttachments));
+            deletedAttachments && (await deleteAttachments(deletedAttachments));
             const finalPost = updatedPost[updatedPost.length - 1];
             res.status(200).json(finalPost);
          } else {
@@ -298,7 +297,7 @@ const PostController = {
    async forceDelete(req, res) {
       try {
          const post = await Post.findByIdAndDelete(req.params.id);
-         post.attachments && (await deleleteAttachments(post.attachments));
+         post.attachments && (await deleteAttachments(post.attachments));
          res.status(200).json(post);
       } catch (err) {
          res.status(500).json({ err, msg: "Delete post failed!" });

@@ -1,5 +1,5 @@
 import { Message, Conversation } from "../models/index.js";
-import { storageAttachments, deleleteAttachments } from "../../utils/firebase.js";
+import { storageAttachments, deleteAttachments } from "../../utils/firebase.js";
 const MessageController = {
    // [POST] message/
    async createNewMessage(req, res) {
@@ -33,7 +33,7 @@ const MessageController = {
    async deleteMessage(req, res) {
       try {
          const message = await Message.findByIdAndDelete(req.params.id);
-         await deleleteAttachments(message.attachments.map((attach) => attach.url));
+         await deleteAttachments(message.attachments.map((attach) => attach.url));
          res.status(200).json(message);
       } catch (err) {
          res.status(500).json(err);

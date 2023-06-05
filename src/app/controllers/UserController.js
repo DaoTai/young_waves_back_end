@@ -1,9 +1,8 @@
-import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import Post from "../models/Post.js";
 import Conversation from "../models/Conversation.js";
-import bcrypt from "bcrypt";
-
+import { storageAttachment, deleteAttachment } from "../../utils/firebase.js";
 const UserController = {
    // [GET] user/all
    async getAllUsers(req, res) {
@@ -45,11 +44,24 @@ const UserController = {
 
    // [PATCH] /user/:id
    async editUser(req, res) {
+      const data = req.body;
+      const idUser = req.params.id;
       try {
-         const user = await User.findByIdAndUpdate(req.params.id, req.body, {
+         const fileAvatar = req.files.find((file) => file.fieldname === "newAvatar");
+         const fileCoverPicture = req.files.find((file) => file.fieldname === "newCoverPicture");
+         const user = await User.findById(idUser);
+         if (fileAvatar) {
+            user.avatar && (await deleteAttachment(user.avatar));
+            data.avatar = await storageAttachment(fileAvatar);
+         }
+         if (fileCoverPicture) {
+            user.coverPicture && (await deleteAttachment(user.coverPicture));
+            data.coverPicture = await storageAttachment(fileCoverPicture);
+         }
+         const updatedUser = await User.findByIdAndUpdate(idUser, data, {
             new: true,
          });
-         res.status(200).json(user);
+         res.status(200).json(updatedUser);
       } catch (err) {
          res.status(500).json("Edited failed");
       }
