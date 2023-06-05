@@ -48,6 +48,15 @@ const ConversationController = {
                   },
                },
             },
+            {
+               $project: {
+                  "members.password": 0,
+                  "members.friends": 0,
+                  "members.coverPicture": 0,
+                  "members.city": 0,
+                  "members.email": 0,
+               },
+            },
          ];
 
          // Pagination

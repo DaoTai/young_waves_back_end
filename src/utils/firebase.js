@@ -21,7 +21,6 @@ export const storageAttachments = async (files) => {
    const urls = [];
    // Ko sử dụng forEach để xử lý bất đồng bộ được
    for (const file of files) {
-      console.log("file: ", file);
       // Upload to firebase cloud
       const downloadUrl = await storageAttachment(file);
       urls.push(downloadUrl);
