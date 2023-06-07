@@ -6,6 +6,7 @@ const router = express.Router();
 router.get("/search", PostController.search);
 router.get("/trash", PostController.getTrash);
 router.get("/:id", PostController.detail);
+router.get("/:id/likes", PostController.getLikes);
 router.get("/owner/:id", PostController.ownerPosts);
 router.get("/trash/:id", PostController.getTrashDetail);
 router.post("/:id/like", PostController.like);

@@ -99,6 +99,23 @@ const PostController = {
       }
    },
 
+   // [GET] posts/:id/likes
+   async getLikes(req, res) {
+      const idPost = req.params.id;
+      try {
+         const post = await Post.findById(idPost, {
+            likes: 1,
+         }).populate("likes", {
+            _id: 1,
+            fullName: 1,
+            avatar: 1,
+         });
+         res.status(200).json(post.likes);
+      } catch (err) {
+         console.log(err);
+      }
+   },
+
    // [POST] posts/
    async create(req, res) {
       try {
