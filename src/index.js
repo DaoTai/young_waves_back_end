@@ -7,7 +7,7 @@ import http from "http";
 import { Server } from "socket.io";
 import connectToDB from "./config/db/index.js";
 import route from "./routes/index.js";
-import { socket } from "./utils/socket.js";
+import { socketChat, socketVideo } from "./utils/socket.js";
 // Using env
 dotenv.config();
 const app = express();
@@ -46,7 +46,8 @@ const socketIo = new Server(server, {
       origin: "*",
    },
 });
-socket(socketIo);
+socketChat(socketIo);
+socketVideo(socketIo);
 
 // Routing for app
 route(app);

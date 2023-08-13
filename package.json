@@ -23,6 +23,7 @@
       "mongoose-delete": "^0.5.4",
       "multer": "^1.4.5-lts.1",
       "nodemailer": "^6.9.1",
+      "open-graph-scraper": "^6.2.2",
       "socket.io": "^4.6.1"
    },
    "devDependencies": {

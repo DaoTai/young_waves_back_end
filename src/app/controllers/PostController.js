@@ -132,8 +132,10 @@ const PostController = {
             fullName: 1,
             avatar: 1,
          });
+         console.log("New post: ", newPost);
          res.status(200).json(newPost);
       } catch (err) {
+         console.log("Error: ", err);
          res.status(500).json({ err, msg: "Create post failed!" });
       }
    },

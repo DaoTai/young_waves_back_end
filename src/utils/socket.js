@@ -1,5 +1,5 @@
 // Chatting socket
-export const socket = (socketIo) => {
+export const socketChat = (socketIo) => {
    let onlineUsers = [];
    let chatUsers = [];
 
@@ -96,6 +96,30 @@ export const socket = (socketIo) => {
          });
          removeChatUser(socket.id);
          removeOnlineUser(socket.id);
+      });
+   });
+};
+
+// Video socket
+export const socketVideo = (socketIo) => {
+   const rooms = [];
+   socketIo.on("connection", (socket) => {
+      socket.emit("me", socket.id);
+      socket.on("disconnect", () => {
+         socket.broadcast.emit("callEnded");
+      });
+
+      socket.on("callUser", ({ userToCall, signalData, from, name }) => {
+         console.log("data: ", { userToCall, signalData, from, name });
+         socketIo.to(userToCall).emit("callUser", {
+            signal: signalData,
+            from,
+            name,
+         });
+      });
+
+      socket.on("answerCall", (data) => {
+         socketIo.to(data.to).emit("callAccepted", data.signal);
       });
    });
 };
