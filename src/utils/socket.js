@@ -6,7 +6,7 @@ export class MySocket {
   // Người dùng online
   onlineUsers = [];
   // Mảng chứa {idSocket, idUser, idConversation} để lấy ra idSocket của user tại 1 conversation
-  chatUsers = [];
+  invitingRoom = {};
 
   constructor(server) {
     this.io = new Server(server, {
@@ -16,6 +16,7 @@ export class MySocket {
     });
   }
 
+  // Methods for chat
   addOnlineUser(idUser, idSocket) {
     const isExist = this.onlineUsers.some((user) => user.idUser === idUser);
     if (!isExist) {
@@ -32,8 +33,23 @@ export class MySocket {
     return user?.idUser || undefined;
   }
 
+  getIdSocketByIdUser(idUser) {
+    const user = this.onlineUsers.find((user) => user.idUser === idUser);
+    return user?.idSocket || undefined;
+  }
+
   getListIdOnlineUsers() {
     return this.onlineUsers.map((user) => user.idUser);
+  }
+
+  // Methods for video call
+  addUserToInvitingRoom(idConversation, listUser) {
+    this.invitingRoom[idConversation] = listUser;
+  }
+
+  getFriendInvitingRoom(idConversation, idSocket) {
+    const friend = this.invitingRoom[idConversation]?.find((item) => item.idSocket !== idSocket);
+    return friend;
   }
 
   handleChat() {
@@ -42,7 +58,6 @@ export class MySocket {
       // => Send online users
       socket.on("joinOnlineUser", (idUser) => {
         this.addOnlineUser(idUser, socket.id);
-        console.log("List online: ", this.onlineUsers);
         this.io.emit("onlineUsers", this.getListIdOnlineUsers());
       });
 
@@ -71,11 +86,41 @@ export class MySocket {
   }
 
   handleVideoCall() {
-    this.io.on("connection", (socket) => {});
+    this.io.on("connection", (socket) => {
+      // => Send online users
+      socket.on("getOnlineUsers", () => {
+        this.io.to(socket.id).emit("onlineUsers", this.getListIdOnlineUsers());
+      });
+
+      // => Get idSocket friend
+      socket.on("getIdSocketFriend", (idConversation) => {
+        const friend = this.getFriendInvitingRoom(idConversation, socket.id);
+        if (friend) {
+          this.io.to(socket.id).emit("receiveIdSocketFriend", friend.idSocket);
+        }
+      });
+
+      // => Inviting to call room
+      socket.on("inviteToCall", (idConversation, listUser) => {
+        this.addUserToInvitingRoom(idConversation, listUser);
+      });
+
+      //  => Call friend
+      socket.on("callFriend", (data) => {
+        const { signal, userFrom, idSocketTo, idSocketFrom } = data;
+
+        socket.to(idSocketTo).emit("invite", {
+          signal,
+          userFrom,
+          idSocketFrom,
+        });
+      });
+    });
   }
 
   run() {
     this.handleChat();
+    // Phần video-call đang gặp vấn đề với vite ko tương thích với simple-peer
     this.handleVideoCall();
   }
 }
